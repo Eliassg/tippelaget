@@ -30,13 +30,10 @@ def line_chart(data):
 
     return chart
 
-# Main function to run the Streamlit app
 def main():
     st.set_page_config(page_title='Tippelaget Analytics', layout='wide')
-
-    # Custom theme
+    data = load_data()
     st.altair_chart(line_chart(data), use_container_width=True)
-
     st.markdown("---")
     st.write('"Trust the process" - Køøhln 2024')
 
