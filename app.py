@@ -5,7 +5,7 @@ import altair as alt
 # Load data from Excel file
 @st.cache_data
 def load_data():
-    df = pd.read_excel('data.xlsx')  # Update the file path accordingly
+    df = pd.read_excel('data.xlsx')
     return df
 
 # Function to create line chart
@@ -41,7 +41,7 @@ def main():
     st.altair_chart(line_chart(data), use_container_width=True)
 
     st.markdown("---")
-    st.write("Trust the process")
+    st.write('"Trust the process" - Køøhln 2024')
 
 if __name__ == '__main__':
     main()
