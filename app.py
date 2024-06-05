@@ -59,8 +59,8 @@ def head_to_head_chart(data):
     return chart
 
 def prediction_line_chart(data):
-    actual_data = data[data['Uke'] <= 9]
-    predicted_data = data[data['Uke'] >= 9]
+    actual_data = data[data['Uke'] <= 10]
+    predicted_data = data[data['Uke'] >= 10]
 
     melted_actual_data = pd.melt(actual_data[['Uke', 'Reisekassa', 'Baseline']], id_vars=['Uke'], var_name='Category', value_name='Value')
     melted_predicted_data = pd.melt(predicted_data[['Uke', 'Reisekassa']], id_vars=['Uke'], var_name='Category', value_name='Value')
