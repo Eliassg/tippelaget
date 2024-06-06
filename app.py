@@ -37,9 +37,11 @@ def line_chart(data):
 # Function to create "head to head" chart
 def head_to_head_chart(data):
 
-    head_to_head_data = data
+    head_to_head_data = data.iloc[:, :5]
 
     melted_data = pd.melt(head_to_head_data, id_vars=['Gameweek'], var_name='Person', value_name='Value')
+
+    
 
     # Define chart properties
     chart = alt.Chart(melted_data).mark_line().encode(
