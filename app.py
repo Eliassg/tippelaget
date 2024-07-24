@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
+import plotly.express as px
+import plotly.graph_objects as go
 
 # Load data from Excel file
 @st.cache_data
@@ -8,68 +9,30 @@ def load_data():
     df = pd.read_excel('data.xlsx', sheet_name='Sheet1')
     df2 = pd.read_excel('data.xlsx', sheet_name='Sheet2')
     df3 = pd.read_excel('data.xlsx', sheet_name='Sheet3')
-    print(df3.columns)
-
     return df, df2, df3
 
-# Function to create line chart for Reisekassa and Baseline without the legend
+# Function to create line chart for Reisekassa and Baseline
 def line_chart(data):
-
     melted_data = pd.melt(data[['Uke', 'Reisekassa', 'Baseline']], id_vars=['Uke'], var_name='Category', value_name='Value')
 
-    # Define chart properties without legend
-    chart = alt.Chart(melted_data).mark_line().encode(
-        x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
-        y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Category:N', legend=None, scale=alt.Scale(range=['blue', 'darkred'])),  # Separate lines by category and set custom colors
-        tooltip=['Uke', 'Value']
-    ).properties(
-        width=700,
-        height=400,
-        title='Reisekassa vs. Baseline'
-    )
+    fig = px.line(melted_data, x='Uke', y='Value', color='Category', 
+                  labels={'Value': 'NOK', 'Uke': 'Week'},
+                  title='Reisekassa vs. Baseline')
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5))
+    return fig
 
-    # Define legend separately
-    legend = alt.Chart(melted_data).mark_point().encode(
-        y=alt.Y('Category:N', axis=alt.Axis(orient='right')),
-        color=alt.Color('Category:N', scale=alt.Scale(range=['blue', 'darkred'])),
-    ).properties(
-        width=700,
-        height=50
-    )
-
-    return chart, legend
-
-# Function to create "head to head" chart without the legend
+# Function to create "head to head" chart
 def head_to_head_chart(data):
-
     head_to_head_data = data.iloc[:, :5]
-
     melted_data = pd.melt(head_to_head_data, id_vars=['Gameweek'], var_name='Person', value_name='Value')
 
-    # Define chart properties without legend
-    chart = alt.Chart(melted_data).mark_line().encode(
-        x=alt.X('Gameweek:Q', axis=alt.Axis(format='d')),
-        y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Person:N', legend=None),
-        tooltip=['Gameweek', 'Value']
-    ).properties(
-        width=700,
-        height=400,
-        title='Head to Head Comparison of Ball Knowledge'
-    )
+    fig = px.line(melted_data, x='Gameweek', y='Value', color='Person',
+                  labels={'Value': 'NOK', 'Gameweek': 'Gameweek'},
+                  title='Head to Head Comparison of Ball Knowledge')
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5))
+    return fig
 
-    # Define legend separately
-    legend = alt.Chart(melted_data).mark_point().encode(
-        y=alt.Y('Person:N', axis=alt.Axis(orient='right')),
-        color=alt.Color('Person:N')
-    ).properties(
-        width=700,
-        height=50
-    )
-
-    return chart, legend
-
+# Function to create prediction line chart
 def prediction_line_chart(data):
     actual_data = data[data['Uke'] <= 19]
     predicted_data = data[data['Uke'] >= 19]
@@ -78,53 +41,25 @@ def prediction_line_chart(data):
     melted_predicted_data = pd.melt(predicted_data[['Uke', 'Reisekassa']], id_vars=['Uke'], var_name='Category', value_name='Value')
     melted_predicted_base_data = pd.melt(predicted_data[['Uke', 'Baseline']], id_vars=['Uke'], var_name='Category', value_name='Value')
     
-    # Define chart properties for actual Reisekassa line
-    actual_line = alt.Chart(melted_actual_data).mark_line().encode(
-        x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
-        y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Category:N', legend=None, scale=alt.Scale(range=['blue', 'darkred'])),
-        tooltip=['Uke', 'Value']
-    )
+    fig = go.Figure()
 
-    predicted_base = alt.Chart(melted_predicted_base_data).mark_line().encode(
-        x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
-        y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.value('blue'),
-        tooltip=['Uke', 'Value']
-    )
+    # Add actual lines
+    for category in melted_actual_data['Category'].unique():
+        subset = melted_actual_data[melted_actual_data['Category'] == category]
+        fig.add_trace(go.Scatter(x=subset['Uke'], y=subset['Value'], mode='lines', name=category))
 
-    # Define chart properties for predicted Reisekassa line (dashed)
-    predicted_line = alt.Chart(melted_predicted_data).mark_line(strokeDash=[5, 5]).encode(
-        x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
-        y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.value('darkred'),
-        tooltip=['Uke', 'Value']
-    )
+    # Add predicted lines
+    fig.add_trace(go.Scatter(x=melted_predicted_data['Uke'], y=melted_predicted_data['Value'], mode='lines', name='Reisekassa (Predicted)', line=dict(dash='dash', color='darkred')))
+    fig.add_trace(go.Scatter(x=melted_predicted_base_data['Uke'], y=melted_predicted_base_data['Value'], mode='lines', name='Baseline (Predicted)', line=dict(dash='dash', color='blue')))
 
-    vertical_rule = alt.Chart(pd.DataFrame({'Uke': [19]})).mark_rule(color='grey', strokeDash=[3, 3]).encode(
-        x='Uke:Q',
-        size=alt.value(2)
-    )
+    # Add vertical rule
+    fig.add_vline(x=19, line=dict(color='grey', dash='dash'))
 
-    # Combine actual and predicted lines
-    chart = alt.layer(actual_line, predicted_line, predicted_base, vertical_rule).properties(
-        width=700,
-        height=400,
-        title='Reisekassa vs. Baseline - Predictions'
-    )
-
-    # Define legend separately
-    legend_data = pd.DataFrame({'Category': ['Reisekassa', 'Baseline'], 'color': ['blue', 'darkred']})
-    legend = alt.Chart(legend_data).mark_point().encode(
-        y=alt.Y('Category:N', axis=alt.Axis(orient='right')),
-        color=alt.Color('color:N', scale=None)
-    ).properties(
-        width=700,
-        height=50
-    )
-
-    return chart, legend
-
+    fig.update_layout(title='Reisekassa vs. Baseline - Predictions',
+                      xaxis_title='Week',
+                      yaxis_title='NOK',
+                      legend=dict(orientation="h", yanchor="bottom", y=-0.3, xanchor="center", x=0.5))
+    return fig
 
 # Main function to run the Streamlit app
 def main():
@@ -133,21 +68,13 @@ def main():
     st.title("Tippelaget - Road to Köln :rocket:")
     st.image('sudkurve.jpg', use_column_width=True)
 
-    data, data2, data3 = load_data()   
+    data, data2, data3 = load_data()
 
-    chart1, legend1 = line_chart(data)
-    st.altair_chart(chart1, use_container_width=True)
-    st.altair_chart(legend1, use_container_width=True)
+    st.plotly_chart(line_chart(data), use_container_width=True)
     st.markdown("---")
-
-    chart2, legend2 = head_to_head_chart(data3)
-    st.altair_chart(chart2, use_container_width=True)
-    st.altair_chart(legend2, use_container_width=True)
+    st.plotly_chart(head_to_head_chart(data3), use_container_width=True)
     st.markdown("---")
-
-    chart3, legend3 = prediction_line_chart(data2)
-    st.altair_chart(chart3, use_container_width=True)
-    st.altair_chart(legend3, use_container_width=True)
+    st.plotly_chart(prediction_line_chart(data2), use_container_width=True)
     st.markdown("Based on state of the art prediction models from OpenAI, Meta, Alphabet and Alibaba, taking into account the joint ball knowledge within Tippelaget's members.")
     st.markdown("---")
     st.write('"Trust the process"')
