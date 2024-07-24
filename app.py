@@ -12,53 +12,63 @@ def load_data():
 
     return df, df2, df3
 
-# Function to create line chart for Reisekassa and Baseline
+# Function to create line chart for Reisekassa and Baseline without the legend
 def line_chart(data):
 
     melted_data = pd.melt(data[['Uke', 'Reisekassa', 'Baseline']], id_vars=['Uke'], var_name='Category', value_name='Value')
 
-    # Define chart properties
+    # Define chart properties without legend
     chart = alt.Chart(melted_data).mark_line().encode(
         x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
         y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Category:N', legend=alt.Legend(), scale=alt.Scale(range=['blue', 'darkred'])),  # Separate lines by category and set custom colors
+        color=alt.Color('Category:N', legend=None, scale=alt.Scale(range=['blue', 'darkred'])),  # Separate lines by category and set custom colors
         tooltip=['Uke', 'Value']
     ).properties(
         width=700,
         height=400,
         title='Reisekassa vs. Baseline'
-    ).configure_legend(
-        titleFontSize=14,
-        labelFontSize=12
     )
 
-    return chart
+    # Define legend separately
+    legend = alt.Chart(melted_data).mark_point().encode(
+        y=alt.Y('Category:N', axis=alt.Axis(orient='right')),
+        color=alt.Color('Category:N', scale=alt.Scale(range=['blue', 'darkred'])),
+    ).properties(
+        width=700,
+        height=50
+    )
 
-# Function to create "head to head" chart
+    return chart, legend
+
+# Function to create "head to head" chart without the legend
 def head_to_head_chart(data):
 
     head_to_head_data = data.iloc[:, :5]
 
     melted_data = pd.melt(head_to_head_data, id_vars=['Gameweek'], var_name='Person', value_name='Value')
 
-    
-
-    # Define chart properties
+    # Define chart properties without legend
     chart = alt.Chart(melted_data).mark_line().encode(
         x=alt.X('Gameweek:Q', axis=alt.Axis(format='d')),
         y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Person:N', legend=alt.Legend(title='Head to Head')),
+        color=alt.Color('Person:N', legend=None),
         tooltip=['Gameweek', 'Value']
     ).properties(
         width=700,
         height=400,
         title='Head to Head Comparison of Ball Knowledge'
-    ).configure_legend(
-        titleFontSize=14,
-        labelFontSize=12
     )
 
-    return chart
+    # Define legend separately
+    legend = alt.Chart(melted_data).mark_point().encode(
+        y=alt.Y('Person:N', axis=alt.Axis(orient='right')),
+        color=alt.Color('Person:N')
+    ).properties(
+        width=700,
+        height=50
+    )
+
+    return chart, legend
 
 def prediction_line_chart(data):
     actual_data = data[data['Uke'] <= 19]
@@ -72,7 +82,7 @@ def prediction_line_chart(data):
     actual_line = alt.Chart(melted_actual_data).mark_line().encode(
         x=alt.X('Uke:Q', axis=alt.Axis(format='d')),
         y=alt.Y('Value:Q', axis=alt.Axis(title='NOK')),
-        color=alt.Color('Category:N', legend=alt.Legend(), scale=alt.Scale(range=['blue', 'darkred'])),
+        color=alt.Color('Category:N', legend=None, scale=alt.Scale(range=['blue', 'darkred'])),
         tooltip=['Uke', 'Value']
     )
 
@@ -101,14 +111,19 @@ def prediction_line_chart(data):
         width=700,
         height=400,
         title='Reisekassa vs. Baseline - Predictions'
-    ).configure_legend(
-        titleFontSize=14,
-        labelFontSize=12
     )
 
-    return chart
+    # Define legend separately
+    legend_data = pd.DataFrame({'Category': ['Reisekassa', 'Baseline'], 'color': ['blue', 'darkred']})
+    legend = alt.Chart(legend_data).mark_point().encode(
+        y=alt.Y('Category:N', axis=alt.Axis(orient='right')),
+        color=alt.Color('color:N', scale=None)
+    ).properties(
+        width=700,
+        height=50
+    )
 
-
+    return chart, legend
 
 
 # Main function to run the Streamlit app
@@ -120,11 +135,19 @@ def main():
 
     data, data2, data3 = load_data()   
 
-    st.altair_chart(line_chart(data), use_container_width=True)
+    chart1, legend1 = line_chart(data)
+    st.altair_chart(chart1, use_container_width=True)
+    st.altair_chart(legend1, use_container_width=True)
     st.markdown("---")
-    st.altair_chart(head_to_head_chart(data3), use_container_width=True)
+
+    chart2, legend2 = head_to_head_chart(data3)
+    st.altair_chart(chart2, use_container_width=True)
+    st.altair_chart(legend2, use_container_width=True)
     st.markdown("---")
-    st.altair_chart(prediction_line_chart(data2), use_container_width=True)
+
+    chart3, legend3 = prediction_line_chart(data2)
+    st.altair_chart(chart3, use_container_width=True)
+    st.altair_chart(legend3, use_container_width=True)
     st.markdown("Based on state of the art prediction models from OpenAI, Meta, Alphabet and Alibaba, taking into account the joint ball knowledge within Tippelaget's members.")
     st.markdown("---")
     st.write('"Trust the process"')
