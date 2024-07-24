@@ -18,7 +18,8 @@ def line_chart(data):
     fig = px.line(melted_data, x='Uke', y='Value', color='Category', 
                   labels={'Value': 'NOK', 'Uke': 'Week'},
                   title='Reisekassa vs. Baseline')
-    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5))
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
+                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
     return fig
 
 # Function to create "head to head" chart
@@ -29,7 +30,8 @@ def head_to_head_chart(data):
     fig = px.line(melted_data, x='Gameweek', y='Value', color='Person',
                   labels={'Value': 'NOK', 'Gameweek': 'Gameweek'},
                   title='Head to Head Comparison of Ball Knowledge')
-    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5))
+    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
+                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
     return fig
 
 # Function to create prediction line chart
@@ -58,7 +60,8 @@ def prediction_line_chart(data):
     fig.update_layout(title='Reisekassa vs. Baseline - Predictions',
                       xaxis_title='Week',
                       yaxis_title='NOK',
-                      legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5))
+                      legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
+                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
     return fig
 
 # Main function to run the Streamlit app
