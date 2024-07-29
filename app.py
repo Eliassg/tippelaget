@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from PIL import Image
 
 # Load data from Excel file
 @st.cache_data
@@ -18,8 +19,10 @@ def line_chart(data):
     fig = px.line(melted_data, x='Uke', y='Value', color='Category', 
                   labels={'Value': 'NOK', 'Uke': 'Week'},
                   title='Reisekassa vs. Baseline')
-    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
-                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
+        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
+    )
     return fig
 
 # Function to create "head to head" chart
@@ -30,8 +33,49 @@ def head_to_head_chart(data):
     fig = px.line(melted_data, x='Gameweek', y='Value', color='Person',
                   labels={'Value': 'NOK', 'Gameweek': 'Gameweek'},
                   title='Head to Head Comparison of Ball Knowledge')
-    fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
-                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
+
+    # Load custom icons
+    icon_mapping = {
+        'Elias': 'elias.png',
+        'Mads': 'mads.png',
+        'Tobias': 'tobias.png',
+    }
+
+    scale_mapping = {
+        'Elias': 0.8,
+        'Mads': 1.6,
+        'Tobias': 1.6,
+    }
+
+
+    
+    scale_factor = 0.8  # Scale down the image
+
+    for person, icon_path in icon_mapping.items():
+        img = Image.open(icon_path)
+        img_width, img_height = img.size
+        
+        subset = melted_data[melted_data['Person'] == person]
+        for idx, row in subset.iterrows():
+            if not pd.isnull(row['Value']):
+                fig.add_layout_image(
+                    dict(
+                        source=img,
+                        x=row['Gameweek'],
+                        y=row['Value'],
+                        xref="x",
+                        yref="y",
+                        sizex=img_width * scale_mapping[person],
+                        sizey=img_height * scale_mapping[person],
+                        xanchor="center",
+                        yanchor="middle"
+                    )
+                )
+
+    fig.update_layout(
+        legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
+        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
+    )
     return fig
 
 # Function to create prediction line chart
@@ -51,17 +95,21 @@ def prediction_line_chart(data):
         fig.add_trace(go.Scatter(x=subset['Uke'], y=subset['Value'], mode='lines', name=category))
 
     # Add predicted lines
-    fig.add_trace(go.Scatter(x=melted_predicted_data['Uke'], y=melted_predicted_data['Value'], mode='lines', name='Reisekassa (Predicted)', line=dict(dash='dash', color='darkred')))
-    fig.add_trace(go.Scatter(x=melted_predicted_base_data['Uke'], y=melted_predicted_base_data['Value'], mode='lines', name='Baseline (Predicted)', line=dict(dash='dash', color='blue')))
+    fig.add_trace(go.Scatter(x=melted_predicted_data['Uke'], y=melted_predicted_data['Value'], mode='lines', 
+                             name='Reisekassa (Predicted)', line=dict(dash='dash', color='darkred')))
+    fig.add_trace(go.Scatter(x=melted_predicted_base_data['Uke'], y=melted_predicted_base_data['Value'], mode='lines', 
+                             name='Baseline (Predicted)', line=dict(dash='dash', color='blue')))
 
     # Add vertical rule
     fig.add_vline(x=19, line=dict(color='grey', dash='dash'))
 
-    fig.update_layout(title='Reisekassa vs. Baseline - Predictions',
-                      xaxis_title='Week',
-                      yaxis_title='NOK',
-                      legend=dict(orientation="h", yanchor="bottom", y=-1.0, xanchor="center", x=0.5),
-                      yaxis=dict(title_font=dict(size=10), tickfont=dict(size=8)))
+    fig.update_layout(
+        title='Reisekassa vs. Baseline - Predictions',
+        xaxis_title='Week',
+        yaxis_title='NOK',
+        legend=dict(orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5),
+        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
+    )
     return fig
 
 # Main function to run the Streamlit app
