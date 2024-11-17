@@ -101,7 +101,7 @@ def prediction_line_chart(data):
                              name='Baseline (Predicted)', line=dict(dash='dash', color='blue')))
 
     # Add vertical rule
-    fig.add_vline(x=19, line=dict(color='grey', dash='dash'))
+    fig.add_vline(x=36, line=dict(color='grey', dash='dash'))
 
     fig.update_layout(
         title='Reisekassa vs. Baseline - Predictions',
