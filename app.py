@@ -80,8 +80,8 @@ def head_to_head_chart(data):
 
 # Function to create prediction line chart
 def prediction_line_chart(data):
-    actual_data = data[data['Uke'] <= 19]
-    predicted_data = data[data['Uke'] >= 19]
+    actual_data = data[data['Uke'] <= 36]
+    predicted_data = data[data['Uke'] >= 36]
 
     melted_actual_data = pd.melt(actual_data[['Uke', 'Reisekassa', 'Baseline']], id_vars=['Uke'], var_name='Category', value_name='Value')
     melted_predicted_data = pd.melt(predicted_data[['Uke', 'Reisekassa']], id_vars=['Uke'], var_name='Category', value_name='Value')
