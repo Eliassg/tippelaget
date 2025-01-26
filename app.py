@@ -101,7 +101,7 @@ def prediction_line_chart(data):
                              name='Baseline (Predicted)', line=dict(dash='dash', color='blue')))
 
     # Add vertical rule
-    fig.add_vline(x=36, line=dict(color='grey', dash='dash'))
+    fig.add_vline(x=42, line=dict(color='grey', dash='dash'))
 
     fig.update_layout(
         title='Reisekassa vs. Baseline - Predictions',
@@ -117,7 +117,7 @@ def main():
     st.set_page_config(page_title='Tippelaget Analytics', layout='wide')
 
     st.title("Tippelaget - Road to Köln :rocket:")
-    st.image('sudkurve.jpg', use_column_width=True)
+    st.image('sudkurve.jpg', use_container_width=True)
 
     data, data2, data3 = load_data()
 
