@@ -11,7 +11,6 @@ from cognite.client.credentials import OAuthClientCredentials
 @st.cache_resource
 def get_client():
     return CogniteClient(
-        project=st.secrets["cognite"]["project"],
         credentials=OAuthClientCredentials(
             token_url=st.secrets["cognite"]["token_url"],
             client_id=st.secrets["cognite"]["client_id"],
@@ -19,6 +18,7 @@ def get_client():
             scopes=st.secrets["cognite"]["scopes"],
         ),
     )
+
 
 
 # -----------------------
