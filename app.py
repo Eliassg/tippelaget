@@ -1,156 +1,121 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
-from PIL import Image
+import altair as alt
+from cognite.client import CogniteClient
+from cognite.client.credentials import OAuthClientCredentials
 
-def load_data():
-    df = pd.read_excel('data.xlsx', sheet_name='Sheet1')
-    df2 = pd.read_excel('data.xlsx', sheet_name='Sheet2')
-    df3 = pd.read_excel('data.xlsx', sheet_name='Sheet3')
-    return df, df2, df3
 
-def create_line_chart(data):
-    melted_data = pd.melt(
-        data[['Uke', 'Reisekassa', 'Baseline']], 
-        id_vars=['Uke'], 
-        var_name='Category', 
-        value_name='Value'
-    )
-    
-    fig = px.line(
-        melted_data, 
-        x='Uke', 
-        y='Value', 
-        color='Category', 
-        labels={'Value': 'NOK', 'Uke': 'Week'},
-        title='Reisekassa vs. Baseline'
-    )
-    
-    fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
-        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
-    )
-    return fig
-
-def create_head_to_head_chart(data):
-    head_to_head_data = data.iloc[:, :5]
-    melted_data = pd.melt(
-        head_to_head_data, 
-        id_vars=['Gameweek'], 
-        var_name='Person', 
-        value_name='Value'
-    )
-    
-    fig = px.line(
-        melted_data, 
-        x='Gameweek', 
-        y='Value', 
-        color='Person',
-        labels={'Value': 'NOK', 'Gameweek': 'Gameweek'},
-        title='Head to Head Comparison of Ball Knowledge'
+# -----------------------
+# Connect to Cognite CDF
+# -----------------------
+@st.cache_resource
+def get_client():
+    return CogniteClient(
+        project=st.secrets["cognite"]["project"],
+        credentials=OAuthClientCredentials(
+            token_url=st.secrets["cognite"]["token_url"],
+            client_id=st.secrets["cognite"]["client_id"],
+            client_secret=st.secrets["cognite"]["client_secret"],
+            scopes=st.secrets["cognite"]["scopes"],
+        ),
     )
 
-    icon_mapping = {'Elias': 'elias.png', 'Mads': 'mads.png', 'Tobias': 'tobias.png'}
-    scale_mapping = {'Elias': 0.8, 'Mads': 1.6, 'Tobias': 1.6}
 
-    for person, icon_path in icon_mapping.items():
-        img = Image.open(icon_path)
-        img_width, img_height = img.size
-        subset = melted_data[melted_data['Person'] == person]
-        
-        for _, row in subset.iterrows():
-            if not pd.isnull(row['Value']):
-                fig.add_layout_image(
-                    dict(
-                        source=img,
-                        x=row['Gameweek'],
-                        y=row['Value'],
-                        xref="x",
-                        yref="y",
-                        sizex=img_width * scale_mapping[person],
-                        sizey=img_height * scale_mapping[person],
-                        xanchor="center",
-                        yanchor="middle"
-                    )
-                )
+# -----------------------
+# Fetch data from a View
+# -----------------------
+@st.cache_data(ttl=0)  # fetch fresh data on every refresh
+def fetch_view(space: str, external_id: str, version: str) -> pd.DataFrame:
+    client = get_client()
+    view = client.models.views.retrieve(space=space, external_id=external_id, version=version)
+    rows = client.models.instances.list(view_id=view.as_id())
+    df = pd.DataFrame([row.properties for row in rows])
 
-    fig.update_layout(
-        legend=dict(orientation="h", yanchor="bottom", y=-0.4, xanchor="center", x=0.5),
-        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
+    # Convert date/time fields
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
+    if "createdTime" in df.columns:
+        df["createdTime"] = pd.to_datetime(df["createdTime"], errors="coerce")
+    if "lastUpdatedTime" in df.columns:
+        df["lastUpdatedTime"] = pd.to_datetime(df["lastUpdatedTime"], errors="coerce")
+
+    return df
+
+
+# -----------------------
+# Streamlit App
+# -----------------------
+st.title("⚽ Betting Dashboard (CDF View)")
+st.caption("Always fetching the latest data from Cognite Data Fusion")
+
+space = "tippelaget_space_name"
+view_external_id = "Bet"   # 👈 replace with your actual view name
+view_version = "1"
+
+df = fetch_view(space, view_external_id, view_version)
+
+if df.empty:
+    st.warning("No bets found in this view.")
+else:
+    st.subheader("Raw Bets Data")
+    st.dataframe(df)
+
+    # Summary KPIs
+    st.subheader("Summary")
+    total_bets = len(df)
+    total_stake = df["betNok"].sum()
+    total_payout = df["payout"].sum()
+    roi = (total_payout - total_stake) / total_stake * 100 if total_stake > 0 else 0
+
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Total Bets", total_bets)
+    col2.metric("Total Stake (NOK)", f"{total_stake:,.0f}")
+    col3.metric("Total Payout (NOK)", f"{total_payout:,.0f}")
+    col4.metric("ROI %", f"{roi:.1f}%")
+
+    # Aggregation per player
+    st.subheader("Performance by Player")
+    player_stats = df.groupby("player").agg(
+        bets=("externalId", "count"),
+        total_stake=("betNok", "sum"),
+        total_payout=("payout", "sum"),
     )
-    return fig
+    player_stats["ROI %"] = (player_stats["total_payout"] - player_stats["total_stake"]) / player_stats["total_stake"] * 100
+    st.dataframe(player_stats)
 
-def create_prediction_line_chart(data):
-    actual_data = data[data['Uke'] <= 42]
-    predicted_data = data[data['Uke'] >= 42]
-
-    melted_actual_data = pd.melt(
-        actual_data[['Uke', 'Reisekassa', 'Baseline']], 
-        id_vars=['Uke'], 
-        var_name='Category', 
-        value_name='Value'
+    # Chart: Stake vs. Payout by Player
+    chart = (
+        alt.Chart(player_stats.reset_index())
+        .mark_bar()
+        .encode(
+            x="player:N",
+            y="total_stake:Q",
+            color=alt.Color("player:N", legend=None),
+            tooltip=["player", "total_stake", "total_payout", "ROI %"],
+        )
     )
-    melted_predicted_data = pd.melt(
-        predicted_data[['Uke', 'Reisekassa']], 
-        id_vars=['Uke'], 
-        var_name='Category', 
-        value_name='Value'
+    payout_chart = (
+        alt.Chart(player_stats.reset_index())
+        .mark_bar(opacity=0.6, color="green")
+        .encode(
+            x="player:N",
+            y="total_payout:Q",
+            tooltip=["player", "total_stake", "total_payout", "ROI %"],
+        )
     )
-    melted_predicted_base_data = pd.melt(
-        predicted_data[['Uke', 'Baseline']], 
-        id_vars=['Uke'], 
-        var_name='Category', 
-        value_name='Value'
-    )
+    st.altair_chart(chart + payout_chart, use_container_width=True)
 
-    fig = go.Figure()
-
-    for category in melted_actual_data['Category'].unique():
-        subset = melted_actual_data[melted_actual_data['Category'] == category]
-        fig.add_trace(go.Scatter(x=subset['Uke'], y=subset['Value'], mode='lines', name=category))
-
-    fig.add_trace(go.Scatter(
-        x=melted_predicted_data['Uke'], 
-        y=melted_predicted_data['Value'], 
-        mode='lines', 
-        name='Reisekassa (Predicted)', 
-        line=dict(dash='dash', color='darkred')
-    ))
-    fig.add_trace(go.Scatter(
-        x=melted_predicted_base_data['Uke'], 
-        y=melted_predicted_base_data['Value'], 
-        mode='lines', 
-        name='Baseline (Predicted)', 
-        line=dict(dash='dash', color='blue')
-    ))
-
-    fig.add_vline(x=42, line=dict(color='grey', dash='dash'))
-
-    fig.update_layout(
-        title='Reisekassa vs. Baseline - Predictions',
-        xaxis_title='Week',
-        yaxis_title='NOK',
-        legend=dict(orientation="h", yanchor="bottom", y=-0.8, xanchor="center", x=0.5),
-        yaxis=dict(title_font=dict(size=12), tickfont=dict(size=10))
-    )
-    return fig
-
-def main():
-    st.set_page_config(page_title='Tippelaget Analytics', layout='wide')
-    st.title("Tippelaget - Road to Köln :rocket:")
-    st.image('sudkurve.jpg', use_container_width=True)
-
-    data, data2, data3 = load_data()
-
-    st.plotly_chart(create_line_chart(data), use_container_width=True)
-    st.markdown("---")
-    st.plotly_chart(create_head_to_head_chart(data3), use_container_width=True)
-    st.markdown("---")
-    st.plotly_chart(create_prediction_line_chart(data2), use_container_width=True)
-    st.markdown("Based on state of the art prediction models from OpenAI, Meta, Alphabet and Alibaba, taking into account the joint ball knowledge within Tippelaget's members.")
-    st.markdown("---")
-    st.write('"Trust the process"')
-
-if __name__ == '__main__':
-    main()
+    # Bets timeline
+    if "date" in df.columns:
+        st.subheader("Bets over Time")
+        timeline = (
+            alt.Chart(df)
+            .mark_circle(size=80)
+            .encode(
+                x="date:T",
+                y="betNok:Q",
+                color="player:N",
+                tooltip=["description", "odds", "betNok", "payout", "player", "gameweek"],
+            )
+        )
+        st.altair_chart(timeline, use_container_width=True)
