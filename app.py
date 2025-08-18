@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-from cognite.client import CogniteClient
+from cognite.client import CogniteClient, ClientConfig
 import altair as alt
 
 # -----------------------
@@ -16,12 +16,12 @@ def get_client() -> CogniteClient:
                 "client_id": st.secrets["cognite"]["client_id"],
                 "client_secret": st.secrets["cognite"]["client_secret"],
                 "token_url": st.secrets["cognite"]["token_url"],
-                "scopes": ["https://api.cognitedata.com/.default"],
+                "scopes": ["https://bluefield.cognitedata.com/.default"],
             },
         },
     }
-    client = CogniteClient.load(config)
-    return client
+    client_config = ClientConfig.load(config)
+    return CogniteClient(config=client_config)
 
 
 # -----------------------
