@@ -24,31 +24,39 @@ def get_client() -> CogniteClient:
     return CogniteClient(config=client_config)
 
 
-# -----------------------
-# Fetch data from a View
-# -----------------------
 @st.cache_data(ttl=0)
-def fetch_view(space: str, external_id: str, version: str = None) -> pd.DataFrame:
+def fetch_bet_view(space: str = "tippelaget", view_external_id: str = "Bet", version: str = None) -> pd.DataFrame:
     client = get_client()
-
-    # Create the identifier tuple
-    view_id = (space, external_id) if version is None else (space, external_id, version)
-
+    
+    # View identifier
+    view_id = (space, view_external_id) if version is None else (space, view_external_id, version)
+    
     # Retrieve the view
-    views = client.data_modeling.views.retrieve(ids=view_id, include_inherited_properties=True, all_versions=False)
-
+    views = client.data_modeling.views.retrieve(
+        ids=view_id, 
+        include_inherited_properties=True,
+        all_versions=False
+    )
+    
     if not views:
-        return pd.DataFrame()  # empty if no view found
-
-    view = views[0]  # get the first (or only) view
-
-    # List instances for that view
+        return pd.DataFrame()
+    
+    view = views[0]
     rows = client.data_modeling.instances.list(view_id=view.as_id())
-
-    # Convert to pandas DataFrame
+    
+    # Convert to DataFrame
     df = pd.DataFrame([row.properties for row in rows])
+    
+    # Optional: flatten nested objects (Player, Gameweek)
+    if not df.empty:
+        if 'player' in df.columns:
+            df['player_name'] = df['player'].apply(lambda x: x.get('name') if isinstance(x, dict) else None)
+            df.drop(columns='player', inplace=True)
+        if 'gameweek' in df.columns:
+            df['gameweek_number'] = df['gameweek'].apply(lambda x: x.get('number') if isinstance(x, dict) else None)
+            df.drop(columns='gameweek', inplace=True)
+    
     return df
-
 
 # -----------------------
 # Streamlit App
@@ -56,74 +64,6 @@ def fetch_view(space: str, external_id: str, version: str = None) -> pd.DataFram
 st.title("⚽ Betting Dashboard (CDF View)")
 st.caption("Always fetching the latest data from Cognite Data Fusion")
 
-space = "tippelaget_space_name"
-view_external_id = "Bet"   # 👈 replace with your actual view name
-view_version = "1"
-
-df = fetch_view(space, view_external_id, view_version)
-
-if df.empty:
-    st.warning("No bets found in this view.")
-else:
-    st.subheader("Raw Bets Data")
-    st.dataframe(df)
-
-    # Summary KPIs
-    st.subheader("Summary")
-    total_bets = len(df)
-    total_stake = df["betNok"].sum()
-    total_payout = df["payout"].sum()
-    roi = (total_payout - total_stake) / total_stake * 100 if total_stake > 0 else 0
-
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Bets", total_bets)
-    col2.metric("Total Stake (NOK)", f"{total_stake:,.0f}")
-    col3.metric("Total Payout (NOK)", f"{total_payout:,.0f}")
-    col4.metric("ROI %", f"{roi:.1f}%")
-
-    # Aggregation per player
-    st.subheader("Performance by Player")
-    player_stats = df.groupby("player").agg(
-        bets=("externalId", "count"),
-        total_stake=("betNok", "sum"),
-        total_payout=("payout", "sum"),
-    )
-    player_stats["ROI %"] = (player_stats["total_payout"] - player_stats["total_stake"]) / player_stats["total_stake"] * 100
-    st.dataframe(player_stats)
-
-    # Chart: Stake vs. Payout by Player
-    chart = (
-        alt.Chart(player_stats.reset_index())
-        .mark_bar()
-        .encode(
-            x="player:N",
-            y="total_stake:Q",
-            color=alt.Color("player:N", legend=None),
-            tooltip=["player", "total_stake", "total_payout", "ROI %"],
-        )
-    )
-    payout_chart = (
-        alt.Chart(player_stats.reset_index())
-        .mark_bar(opacity=0.6, color="green")
-        .encode(
-            x="player:N",
-            y="total_payout:Q",
-            tooltip=["player", "total_stake", "total_payout", "ROI %"],
-        )
-    )
-    st.altair_chart(chart + payout_chart, use_container_width=True)
-
-    # Bets timeline
-    if "date" in df.columns:
-        st.subheader("Bets over Time")
-        timeline = (
-            alt.Chart(df)
-            .mark_circle(size=80)
-            .encode(
-                x="date:T",
-                y="betNok:Q",
-                color="player:N",
-                tooltip=["description", "odds", "betNok", "payout", "player", "gameweek"],
-            )
-        )
-        st.altair_chart(timeline, use_container_width=True)
+# Fetch and display Bet view
+df = fetch_bet_view()
+st.dataframe(df)
