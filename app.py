@@ -27,21 +27,26 @@ def get_client() -> CogniteClient:
 # -----------------------
 # Fetch data from a View
 # -----------------------
-@st.cache_data(ttl=0)  # fetch fresh data on every refresh
-def fetch_view(space: str, external_id: str, version: str) -> pd.DataFrame:
+@st.cache_data(ttl=0)
+def fetch_view(space: str, external_id: str, version: str = None) -> pd.DataFrame:
     client = get_client()
-    view = client.models.views.retrieve(space=space, external_id=external_id, version=version)
-    rows = client.models.instances.list(view_id=view.as_id())
+
+    # Create the identifier tuple
+    view_id = (space, external_id) if version is None else (space, external_id, version)
+
+    # Retrieve the view
+    views = client.data_modeling.views.retrieve(ids=view_id, include_inherited_properties=True, all_versions=False)
+
+    if not views:
+        return pd.DataFrame()  # empty if no view found
+
+    view = views[0]  # get the first (or only) view
+
+    # List instances for that view
+    rows = client.data_modeling.instances.list(view_id=view.as_id())
+
+    # Convert to pandas DataFrame
     df = pd.DataFrame([row.properties for row in rows])
-
-    # Convert date/time fields
-    if "date" in df.columns:
-        df["date"] = pd.to_datetime(df["date"], errors="coerce", dayfirst=True)
-    if "createdTime" in df.columns:
-        df["createdTime"] = pd.to_datetime(df["createdTime"], errors="coerce")
-    if "lastUpdatedTime" in df.columns:
-        df["lastUpdatedTime"] = pd.to_datetime(df["lastUpdatedTime"], errors="coerce")
-
     return df
 
 
