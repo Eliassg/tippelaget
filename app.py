@@ -5,19 +5,20 @@ from cognite.client import CogniteClient
 import altair as alt
 from cognite.client.credentials import OAuthClientCredentials
 
+
 @st.cache_resource
 def get_client() -> CogniteClient:
     credentials = OAuthClientCredentials(
         client_id=st.secrets["cognite"]["client_id"],
         client_secret=st.secrets["cognite"]["client_secret"],
         token_url=st.secrets["cognite"]["token_url"],
-        scopes=["data:read", "data:write"]  # <-- required
+        scopes=["data:read", "data:write"]  # required
     )
 
     client = CogniteClient(
-        client_name="tippelaget_app",
-        base_url=st.secrets["cognite"]["base_url"],
-        credentials=credentials
+        credentials=credentials,
+        project=st.secrets["cognite"]["project"],
+        base_url=st.secrets["cognite"]["base_url"]
     )
     return client
 
