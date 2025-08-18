@@ -11,12 +11,12 @@ from cognite.client.credentials import OAuthClientCredentials
 @st.cache_resource
 def get_client():
     return CogniteClient(
-        credentials=OAuthClientCredentials(
-            token_url=st.secrets["cognite"]["token_url"],
-            client_id=st.secrets["cognite"]["client_id"],
-            client_secret=st.secrets["cognite"]["client_secret"],
-            scopes=st.secrets["cognite"]["scopes"],
-        ),
+        token_client_credentials={
+            "token_url": st.secrets["cognite"]["token_url"],
+            "client_id": st.secrets["cognite"]["client_id"],
+            "client_secret": st.secrets["cognite"]["client_secret"],
+            "scopes": st.secrets["cognite"]["scopes"],
+        }
     )
 
 
