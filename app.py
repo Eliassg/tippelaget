@@ -1,6 +1,8 @@
-from cognite.client import CogniteClient
 import streamlit as st
+import pandas as pd
 import requests
+from cognite.client import CogniteClient
+import altair as alt
 
 # -----------------------
 # Auth helper
