@@ -64,4 +64,4 @@ st.caption("Always fetching the latest data from Cognite Data Fusion")
 
 # Fetch and display Bet view
 df = fetch_bet_view()
-st.dataframe(df)
+st.write(df)
