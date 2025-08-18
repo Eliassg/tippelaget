@@ -10,12 +10,13 @@ def get_client() -> CogniteClient:
     credentials = OAuthClientCredentials(
         client_id=st.secrets["cognite"]["client_id"],
         client_secret=st.secrets["cognite"]["client_secret"],
-        token_url=st.secrets["cognite"]["token_url"]
+        token_url=st.secrets["cognite"]["token_url"],
+        scopes=["data:read", "data:write"]  # <-- required
     )
 
     client = CogniteClient(
-        client_name="tippelaget_app",  # Optional, just for logging
-        base_url=st.secrets["cognite"]["base_url"],  # usually https://api.cognitedata.com
+        client_name="tippelaget_app",
+        base_url=st.secrets["cognite"]["base_url"],
         credentials=credentials
     )
     return client
