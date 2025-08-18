@@ -3,24 +3,26 @@ import pandas as pd
 import requests
 from cognite.client import CogniteClient
 import altair as alt
-from cognite.client.credentials import OAuthClientCredentials
 
-
+# -----------------------
 @st.cache_resource
 def get_client() -> CogniteClient:
-    credentials = OAuthClientCredentials(
-        client_id=st.secrets["cognite"]["client_id"],
-        client_secret=st.secrets["cognite"]["client_secret"],
-        token_url=st.secrets["cognite"]["token_url"],
-        scopes=["data:read", "data:write"]  # required
-    )
-
-    client = CogniteClient(
-        credentials=credentials,
-        project=st.secrets["cognite"]["project"],
-        base_url=st.secrets["cognite"]["base_url"]
-    )
+    config = {
+        "client_name": "tippelaget_app",
+        "project": st.secrets["cognite"]["project"],
+        "base_url": st.secrets["cognite"]["base_url"],
+        "credentials": {
+            "client_credentials": {
+                "client_id": st.secrets["cognite"]["client_id"],
+                "client_secret": st.secrets["cognite"]["client_secret"],
+                "token_url": st.secrets["cognite"]["token_url"],
+                "scopes": ["https://api.cognitedata.com/.default"],
+            },
+        },
+    }
+    client = CogniteClient.load(config)
     return client
+
 
 # -----------------------
 # Fetch data from a View
