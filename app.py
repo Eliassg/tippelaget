@@ -25,7 +25,7 @@ def get_client() -> CogniteClient:
 
 
 @st.cache_data(ttl=0)
-def fetch_bet_view(space: str = "tippelaget", view_external_id: str = "Bet", version: str = None) -> pd.DataFrame:
+def fetch_bet_view(space: str = "tippelaget_space_name", model_external_id: str = "tippelaget", view_external_id: str = "Bet", version: str = None) -> pd.DataFrame:
     client = get_client()
     
     # View identifier
