@@ -1,25 +1,38 @@
-import streamlit as st
-import pandas as pd
-import altair as alt
 from cognite.client import CogniteClient
-from cognite.client.credentials import OAuthClientCredentials
-
+import streamlit as st
+import requests
 
 # -----------------------
-# Connect to Cognite CDF
+# Auth helper
+# -----------------------
+def get_token():
+    """Fetch an OAuth2 token from Azure AD using client credentials."""
+    token_url = st.secrets["cognite"]["token_url"]
+    client_id = st.secrets["cognite"]["client_id"]
+    client_secret = st.secrets["cognite"]["client_secret"]
+    scopes = st.secrets["cognite"]["scopes"]
+
+    payload = {
+        "grant_type": "client_credentials",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "scope": " ".join(scopes),
+    }
+    resp = requests.post(token_url, data=payload)
+    resp.raise_for_status()
+    return resp.json()["access_token"]
+
+# -----------------------
+# Cognite client
 # -----------------------
 @st.cache_resource
 def get_client():
+    token = get_token()
     return CogniteClient(
-        token_client_credentials={
-            "token_url": st.secrets["cognite"]["token_url"],
-            "client_id": st.secrets["cognite"]["client_id"],
-            "client_secret": st.secrets["cognite"]["client_secret"],
-            "scopes": st.secrets["cognite"]["scopes"],
-        }
+        token=token,
+        project=st.secrets["cognite"]["project"],
+        base_url=st.secrets["cognite"]["base_url"],  # usually https://api.cognitedata.com
     )
-
-
 
 # -----------------------
 # Fetch data from a View
