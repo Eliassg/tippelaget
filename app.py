@@ -25,37 +25,34 @@ def get_client() -> CogniteClient:
 
 
 @st.cache_data(ttl=0)
-def fetch_bet_view(space: str = "tippelaget_space_name", model_external_id: str = "tippelaget", view_external_id: str = "Bet", version: str = None) -> pd.DataFrame:
+def fetch_bet_view(
+    space: str = "tippelaget_space_name", 
+    view_external_id: str = "Bet", 
+    version: str = "fcb537cee9eba5"  # 👈 replace with latest version if needed
+) -> pd.DataFrame:
     client = get_client()
     
     # View identifier
-    view_id = (space, view_external_id) if version is None else (space, view_external_id, version)
-    
-    # Retrieve the view
-    views = client.data_modeling.views.retrieve(
-        ids=view_id, 
-        include_inherited_properties=True,
-        all_versions=False
+    view_id = ViewId(space, view_external_id, version)
+
+    # Retrieve the instances
+    rows = client.data_modeling.instances.list(
+        sources=[view_id],
+        limit=1000
     )
-    
-    if not views:
+    if not rows:
+        print("⚠️ No rows found in this view")
         return pd.DataFrame()
-    
-    view = views[0]
-    rows = client.data_modeling.instances.list(view_id=view.as_id())
-    
+
+    # ✅ Extract properties correctly
+    extracted = []
+    for row in rows:
+        props = row.properties.get(view_id)  # each row has dict keyed by viewId
+        extracted.append(props)
+
     # Convert to DataFrame
-    df = pd.DataFrame([row.properties for row in rows])
-    
-    # Optional: flatten nested objects (Player, Gameweek)
-    if not df.empty:
-        if 'player' in df.columns:
-            df['player_name'] = df['player'].apply(lambda x: x.get('name') if isinstance(x, dict) else None)
-            df.drop(columns='player', inplace=True)
-        if 'gameweek' in df.columns:
-            df['gameweek_number'] = df['gameweek'].apply(lambda x: x.get('number') if isinstance(x, dict) else None)
-            df.drop(columns='gameweek', inplace=True)
-    
+    df = pd.json_normalize(extracted)
+
     return df
 
 # -----------------------
