@@ -182,18 +182,28 @@ with tab4:
 
 # --- Tab 5: Cumulative payout vs baseline (stake) ---
 with tab5:
-    df_sorted = df.sort_values(["player", "gameweek_num", "date"])
-    df_sorted["payout"] = df_sorted["payout"].fillna(0)
-    df_sorted["betNok"] = df_sorted["betNok"].fillna(0)
+    # Aggregate by player + gameweek (remove duplicate bumps per week)
+    weekly = df.groupby(["player", "gameweek_num"], as_index=False).agg(
+        payout=("payout", "sum"),
+        stake=("betNok", "sum")
+    )
 
-    df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
-    df_sorted["cumulative_stake"] = df_sorted.groupby("player")["betNok"].cumsum()
+    # Compute cumulative sums per player
+    weekly["cumulative_payout"] = weekly.groupby("player")["payout"].cumsum()
+    weekly["cumulative_stake"] = weekly.groupby("player")["stake"].cumsum()
 
     fig, ax = new_fig((10,6))
-    colors = sns.color_palette("Set2", n_colors=df_sorted["player"].nunique())
-    for (player, group), color in zip(df_sorted.groupby("player"), colors):
-        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", linewidth=2, alpha=0.9, color=color, label=f"{player} payout")
-        ax.plot(group["gameweek_num"], group["cumulative_stake"], linestyle="--", linewidth=1.8, alpha=0.7, color=color, label=f"{player} stake")
+    colors = sns.color_palette("Set2", n_colors=weekly["player"].nunique())
+
+    for (player, group), color in zip(weekly.groupby("player"), colors):
+        ax.plot(
+            group["gameweek_num"], group["cumulative_payout"],
+            marker="o", linewidth=2, alpha=0.9, color=color, label=f"{player} payout"
+        )
+        ax.plot(
+            group["gameweek_num"], group["cumulative_stake"],
+            linestyle="--", linewidth=1.8, alpha=0.7, color=color, label=f"{player} stake"
+        )
 
     style_ax_dark(ax, "Cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
