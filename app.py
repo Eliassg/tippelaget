@@ -87,60 +87,66 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", "Win Rate"
 ])
 
+# Set Seaborn dark theme and figure style
+sns.set_theme(style="darkgrid")  # darkgrid works nicely in dark mode
+sns.set_palette("Set2")           # nice soft colors
+
+def style_ax(ax, title, xlabel=None, ylabel=None):
+    """Apply consistent styling to axes."""
+    ax.set_title(title, fontsize=16, weight="bold")
+    if xlabel:
+        ax.set_xlabel(xlabel, fontsize=12)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=12)
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle="--", alpha=0.5)
+
 # --- Tab 1: Total Payout ---
 with tab1:
     payouts = df.groupby("player")["payout"].sum().reset_index()
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,5))
     sns.barplot(data=payouts, x="player", y="payout", ax=ax)
-    ax.set_title("Total payout per player")
-    ax.set_ylabel("Total NOK")
+    style_ax(ax, "Total payout per player", ylabel="Total NOK")
     st.pyplot(fig)
 
 # --- Tab 2: Average Odds ---
 with tab2:
     odds = df.groupby("player")["odds"].mean().reset_index()
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,5))
     sns.barplot(data=odds, x="player", y="odds", ax=ax)
-    ax.set_title("Average odds per player")
-    ax.set_ylabel("Mean odds")
+    style_ax(ax, "Average odds per player", ylabel="Mean odds")
     st.pyplot(fig)
 
 # --- Tab 3: Cumulative payout over time ---
 with tab3:
     df_sorted = df.sort_values(["player", "gameweek_num", "date"])
-    df_sorted["payout"] = df_sorted["payout"].fillna(0)  # replace NaN with 0
+    df_sorted["payout"] = df_sorted["payout"].fillna(0)
     df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
 
-
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(10,6))
     for player, group in df_sorted.groupby("player"):
-        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", label=player)
+        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", linewidth=2, label=player)
+        # Optional: annotate last value
+        ax.text(group["gameweek_num"].iloc[-1]+0.1, group["cumulative_payout"].iloc[-1], f"{group['cumulative_payout'].iloc[-1]:.0f}", fontsize=9)
 
-    ax.set_title("Cumulative payout per player")
-    ax.set_xlabel("Gameweek")
-    ax.set_ylabel("Cumulative NOK")
-    ax.legend()
+    style_ax(ax, "Cumulative payout per player", xlabel="Gameweek", ylabel="Cumulative NOK")
+    ax.legend(title="Player", bbox_to_anchor=(1.05, 1), loc="upper left")
     st.pyplot(fig)
 
 # --- Tab 4: Win Rate ---
 with tab4:
-    # Group by player + gameweek
     weekly = df.groupby(["player", "gameweek"]).agg(
         total_payout=("payout", "sum"),
         total_bet=("betNok", "sum")
     ).reset_index()
 
-    # Win if payout >= stake for that gameweek
     weekly["won_week"] = weekly["total_payout"] >= weekly["total_bet"]
-
-    # Calculate win rate per player
     winrate = weekly.groupby("player")["won_week"].mean().reset_index()
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(8,5))
     sns.barplot(data=winrate, x="player", y="won_week", ax=ax)
-    ax.set_title("Win rate per player (by gameweek)")
-    ax.set_ylabel("Win rate (%)")
+    style_ax(ax, "Win rate per player (by gameweek)", ylabel="Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()])
     st.pyplot(fig)
