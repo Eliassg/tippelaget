@@ -339,7 +339,7 @@ with tab8:
         openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
 
         # Prepare a data-aware summary (limited for token safety)
-        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "cumulative_payout", "won"]]
+        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "won"]]
         df_snippet = df_snippet.head(100)  # first 100 rows to limit prompt size
         data_json = df_snippet.to_dict(orient="records")
 
@@ -367,3 +367,6 @@ with tab8:
 
         except Exception as e:
             st.error(f"Error calling OpenAI API: {e}")
+
+# Display df
+st.write(df)
