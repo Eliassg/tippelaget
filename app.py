@@ -335,30 +335,32 @@ with tab8:
 
     if user_question:
         # Set API key from Streamlit secrets
+        import openai
         openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
 
-        # Provide a concise summary of the dataframe as context
-        context = (
-            f"Data contains {len(df)} bets across {df['player'].nunique()} players "
-            f"and {df['gameweek_num'].nunique()} gameweeks.\n"
-            "Columns: player, gameweek_num, payout, betNok, odds, cumulative_payout, won"
-        )
+        # Prepare a data-aware summary (limited for token safety)
+        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "cumulative_payout", "won"]]
+        df_snippet = df_snippet.head(100)  # first 100 rows to limit prompt size
+        data_json = df_snippet.to_dict(orient="records")
 
         prompt = f"""
-        You are a sports betting assistant. The dataset summary is:\n
-        {context}\n
-        Question: {user_question}\n
-        Answer concisely and in human-readable form. Always include a roast about the player that is asked about, or is the answer to the question. Never admit that Tobias have made a good bet in his life.
+        You are a sports betting assistant with access to actual data.
+        The dataset (first 100 rows) is:
+        {data_json}
+
+        Answer the user's question based on this actual data. 
+        Always include a playful roast about the player involved.
+        Never admit Tobias has made a good bet. 
+        Provide numeric insights when relevant.
+        Question: {user_question}
         """
 
-        # Call OpenAI ChatCompletion (v1.x)
         try:
             response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3
             )
-
 
             answer = response.choices[0].message.content
             st.markdown(f"**Prophet says:** {answer}")
