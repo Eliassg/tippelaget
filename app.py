@@ -180,32 +180,37 @@ with tab4:
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 5: Cumulative payout vs baseline (stake) ---
+# --- Tab 5: Cumulative payout vs baseline (shared stake) ---
 with tab5:
-    # Aggregate by player + gameweek (remove duplicate bumps per week)
+    # Aggregate by player + gameweek
     weekly = df.groupby(["player", "gameweek_num"], as_index=False).agg(
         payout=("payout", "sum"),
         stake=("betNok", "sum")
     )
 
-    # Compute cumulative sums per player
+    # Cumulative payout per player
     weekly["cumulative_payout"] = weekly.groupby("player")["payout"].cumsum()
-    weekly["cumulative_stake"] = weekly.groupby("player")["stake"].cumsum()
+
+    # Compute the shared baseline (stake is same for all players each GW)
+    baseline = weekly.groupby("gameweek_num")["stake"].sum().cumsum().reset_index()
 
     fig, ax = new_fig((10,6))
     colors = sns.color_palette("Set2", n_colors=weekly["player"].nunique())
 
+    # Player payout curves
     for (player, group), color in zip(weekly.groupby("player"), colors):
         ax.plot(
             group["gameweek_num"], group["cumulative_payout"],
-            marker="o", linewidth=2, alpha=0.9, color=color, label=f"{player} payout"
-        )
-        ax.plot(
-            group["gameweek_num"], group["cumulative_stake"],
-            linestyle="--", linewidth=1.8, alpha=0.7, color=color, label=f"{player} stake"
+            marker="o", linewidth=2, alpha=0.9, color=color, label=player
         )
 
-    style_ax_dark(ax, "Cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
+    # Shared baseline
+    ax.plot(
+        baseline["gameweek_num"], baseline["stake"],
+        linestyle="--", linewidth=2.2, alpha=0.9, color="white", label="Baseline (stake)"
+    )
+
+    style_ax_dark(ax, "Cumulative payout vs shared stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
         title="Player / Metric",
         bbox_to_anchor=(1.05, 1),
@@ -216,17 +221,28 @@ with tab5:
     )
     st.pyplot(fig, use_container_width=True)
 
+
 # --- Tab 6: Team total (all players summed) ---
 with tab6:
-    df_team = df.sort_values(["gameweek_num", "date"])
-    df_team["payout"] = df_team["payout"].fillna(0)
-    df_team["betNok"] = df_team["betNok"].fillna(0)
+    # Aggregate by gameweek across all players
+    team_weekly = df.groupby("gameweek_num", as_index=False).agg(
+        payout=("payout", "sum"),
+        stake=("betNok", "sum")
+    )
 
-    team_cumulative = df_team.groupby("gameweek_num")[["payout","betNok"]].sum().cumsum().reset_index()
+    # Cumulative totals
+    team_weekly["cumulative_payout"] = team_weekly["payout"].cumsum()
+    team_weekly["cumulative_stake"] = team_weekly["stake"].cumsum()
 
     fig, ax = new_fig((10,6))
-    ax.plot(team_cumulative["gameweek_num"], team_cumulative["payout"], marker="o", linewidth=2.5, color="lime", label="Team Payout")
-    ax.plot(team_cumulative["gameweek_num"], team_cumulative["betNok"], linestyle="--", linewidth=2, color="orange", label="Team Stake")
+    ax.plot(
+        team_weekly["gameweek_num"], team_weekly["cumulative_payout"],
+        marker="o", linewidth=2.5, color="lime", label="Team Payout"
+    )
+    ax.plot(
+        team_weekly["gameweek_num"], team_weekly["cumulative_stake"],
+        linestyle="--", linewidth=2.5, color="orange", label="Baseline (stake)"
+    )
 
     style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
