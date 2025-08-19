@@ -31,7 +31,7 @@ def get_client() -> CogniteClient:
 def fetch_bet_view(
     space: str = "tippelaget_space_name", 
     view_external_id: str = "Bet", 
-    version: str = "fcb537cee9eba5"  # 👈 replace with latest version if needed
+    version: str = "fcb537cee9eba5"
 ) -> pd.DataFrame:
     client = get_client()
     
@@ -47,7 +47,7 @@ def fetch_bet_view(
         print("⚠️ No rows found in this view")
         return pd.DataFrame()
 
-    # ✅ Extract properties correctly
+    # Extract properties correctly
     extracted = []
     for row in rows:
         props = row.properties.get(view_id)  # each row has dict keyed by viewId
@@ -65,7 +65,7 @@ def fetch_bet_view(
 # Fetch and display Bet view
 df = fetch_bet_view()
 
-st.title("📊 Tippelaget 2025 ⚽ ")
+st.title("📊 Tippelaget Season 2 ⚽ ")
 
 # --- Flatten columns ---
 df = df.rename(columns={
@@ -114,7 +114,7 @@ def new_fig(size=(8,5)):
 # ---- Tabs ----
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", 
-    "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness (Winnings vs Expected)"
+    "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?"
 ])
 
 # --- Tab 1: Total Payout ---
@@ -285,7 +285,7 @@ with tab7:
         data=luck, x="player", y="luck_ratio",
         ax=ax, palette="coolwarm", edgecolor=None
     )
-    style_ax_dark(ax, "Luckiness per player (Actual ÷ Expected EV)", ylabel="Luck Ratio")
+    style_ax_dark(ax, "Luckiness per player / Ball knowledge? (Actual ÷ EV)", ylabel="Luck Ratio (Ball knowledge?)")
 
     # Baseline at 1 (fair expectation)
     ax.axhline(1, linestyle="--", color="white", alpha=0.6)
@@ -318,8 +318,8 @@ with tab7:
     luckiest = luck.iloc[0]
     unluckiest = luck.iloc[-1]
     st.markdown(
-        f"🏆 **Luckiest player:** {luckiest['player']} (ratio {luckiest['luck_ratio']:.2f})  \n"
-        f"💀 **Unluckiest player:** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
+        f"🏆 **Luckiest player (Lots of ball knowledge?):** {luckiest['player']} (ratio {luckiest['luck_ratio']:.2f})  \n"
+        f"💀 **Unluckiest player (Lack of ball knowledge?):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
     )
 
 
