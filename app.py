@@ -82,11 +82,6 @@ df["gameweek_num"] = df["gameweek"].str.extract(r"GW_(\d+)").astype(int)
 # Win flag
 df["won"] = df["payout"] > 0
 
-# ---- Tabs ----
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Total Payout", "Average Odds", "Cumulative Payout", "Win Rate"
-])
-
 # --- Global Dark Mode ---
 plt.style.use("dark_background")
 sns.set_theme(style="dark")
@@ -115,6 +110,12 @@ def style_ax_dark(ax, title, xlabel=None, ylabel=None):
 def new_fig(size=(8,5)):
     """Create borderless dark figure."""
     return plt.subplots(figsize=size, facecolor="#0E1117")
+
+# ---- Tabs ----
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Total Payout", "Average Odds", "Cumulative Payout", 
+    "Win Rate", "Cumulative vs Baseline", "Team Total"
+])
 
 # --- Tab 1: Total Payout ---
 with tab1:
@@ -177,4 +178,51 @@ with tab4:
     sns.barplot(data=winrate, x="player", y="won_week", ax=ax, palette="flare", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Win rate per player (by gameweek)", ylabel="Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
+    st.pyplot(fig, use_container_width=True)
+
+# --- Tab 5: Cumulative payout vs baseline (stake) ---
+with tab5:
+    df_sorted = df.sort_values(["player", "gameweek_num", "date"])
+    df_sorted["payout"] = df_sorted["payout"].fillna(0)
+    df_sorted["betNok"] = df_sorted["betNok"].fillna(0)
+
+    df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
+    df_sorted["cumulative_stake"] = df_sorted.groupby("player")["betNok"].cumsum()
+
+    fig, ax = new_fig((10,6))
+    colors = sns.color_palette("Set2", n_colors=df_sorted["player"].nunique())
+    for (player, group), color in zip(df_sorted.groupby("player"), colors):
+        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", linewidth=2, alpha=0.9, color=color, label=f"{player} payout")
+        ax.plot(group["gameweek_num"], group["cumulative_stake"], linestyle="--", linewidth=1.8, alpha=0.7, color=color, label=f"{player} stake")
+
+    style_ax_dark(ax, "Cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
+    ax.legend(
+        title="Player / Metric",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        facecolor="#0E1117",
+        edgecolor="none",
+        labelcolor="white"
+    )
+    st.pyplot(fig, use_container_width=True)
+
+# --- Tab 6: Team total (all players summed) ---
+with tab6:
+    df_team = df.sort_values(["gameweek_num", "date"])
+    df_team["payout"] = df_team["payout"].fillna(0)
+    df_team["betNok"] = df_team["betNok"].fillna(0)
+
+    team_cumulative = df_team.groupby("gameweek_num")[["payout","betNok"]].sum().cumsum().reset_index()
+
+    fig, ax = new_fig((10,6))
+    ax.plot(team_cumulative["gameweek_num"], team_cumulative["payout"], marker="o", linewidth=2.5, color="lime", label="Team Payout")
+    ax.plot(team_cumulative["gameweek_num"], team_cumulative["betNok"], linestyle="--", linewidth=2, color="orange", label="Team Stake")
+
+    style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
+    ax.legend(
+        title="Metric",
+        facecolor="#0E1117",
+        edgecolor="none",
+        labelcolor="white"
+    )
     st.pyplot(fig, use_container_width=True)
