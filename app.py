@@ -63,12 +63,22 @@ def fetch_bet_view(
 # -----------------------
 
 # Fetch and display Bet view
+# Fetch and display Bet view
 df = fetch_bet_view()
 
 st.title("📊 Tippelaget Player Comparison ⚽ ")
 
+# --- Flatten columns ---
+df = df.rename(columns={
+    "player.externalId": "player",
+    "gameweek.externalId": "gameweek"
+})
+
+# Drop unused space columns
+df = df.drop(columns=["player.space", "gameweek.space"], errors="ignore")
+
 # Convert gameweek string "GW_X" → integer
-df["gameweek_num"] = df["gameweek"].str.extract("GW_(\d+)").astype(int)
+df["gameweek_num"] = df["gameweek"].str.extract(r"GW_(\d+)").astype(int)
 
 # Win flag
 df["won"] = df["payout"] > 0
