@@ -59,6 +59,18 @@ def fetch_bet_view(
 
     return df
 
+
+# Function to create a data frame with the dates 15.xx.2025 once per moth with a second column "innskudd" with 600 each month calculate end date based on the current month.
+def create_monthly_innskudd_df():
+    # Create a date range for the 15th of each month until the latest month today
+    dates = pd.date_range(start="2025-03-15", end=pd.Timestamp.today(), freq="MS") + pd.DateOffset(days=14)
+    # Create a DataFrame
+    df = pd.DataFrame({
+        "date": dates,
+        "innskudd": 600
+    })
+    return df
+
 # -----------------------
 # Streamlit App
 # -----------------------
@@ -113,9 +125,9 @@ def new_fig(size=(8,5)):
     return plt.subplots(figsize=size, facecolor="#0E1117")
 
 # ---- Tabs ----
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", 
-    "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?"
+    "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?", "Tippekassa vs Baseline"
 ])
 
 # --- Tab 1: Total Payout ---
@@ -321,7 +333,70 @@ with tab7:
         f"💀 **Unluckiest player (Lack of ball knowledge?):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
     )
 
-# --- Tab 8: The Prophet (Ask questions about the data) ---
+# --- Tab 8: Winnings + Monthly deposits ---
+
+with tab8:
+    # Convert date columns to datetime
+    df["date"] = pd.to_datetime(df["date"])
+    innskudd_df = create_monthly_innskudd_df
+
+    # Assign gameweek_num to innskudd by matching closest previous gameweek
+    gw_dates = df.groupby("gameweek_num")["date"].min().reset_index()
+    innskudd_df["gameweek_num"] = innskudd_df["date"].apply(
+        lambda x: gw_dates[gw_dates["date"] <= x]["gameweek_num"].max()
+    )
+
+    # Aggregate payouts and stakes per gameweek (all players combined)
+    weekly = df.groupby("gameweek_num", as_index=False).agg(
+        total_payout=("payout", "sum"),
+        total_stake=("betNok", "sum")
+    )
+
+    # Merge innskudd into weekly
+    weekly = weekly.merge(
+        innskudd_df.groupby("gameweek_num")["innskudd"].sum().reset_index(),
+        on="gameweek_num",
+        how="left"
+    )
+    weekly["innskudd"] = weekly["innskudd"].fillna(0)
+
+    # Compute cumulative sums
+    weekly["cum_payout_plus_innskudd"] = (weekly["total_payout"] + weekly["innskudd"]).cumsum()
+    weekly["cum_stake_plus_innskudd"] = (weekly["total_stake"] + weekly["innskudd"]).cumsum()
+
+    # Plot
+    fig, ax = new_fig((10,6))
+    ax.plot(
+        weekly["gameweek_num"], weekly["cum_payout_plus_innskudd"],
+        marker="o", linewidth=2.5, color="#4CAF50", label="Total Winnings + Innskudd"
+    )
+    ax.plot(
+        weekly["gameweek_num"], weekly["cum_stake_plus_innskudd"],
+        linestyle="--", linewidth=2, color="white", alpha=0.8, label="Total Stake + Innskudd (baseline)"
+    )
+
+    style_ax_dark(
+        ax, 
+        title="Total Winnings + Monthly Innskudd vs Stake + Innskudd", 
+        xlabel="Gameweek", 
+        ylabel="Cumulative NOK"
+    )
+    ax.legend(loc="upper left", frameon=False, facecolor="#0E1117", edgecolor="none", labelcolor="white")
+
+    st.pyplot(fig, use_container_width=True)
+
+    # Optional explanation
+    st.markdown(
+        """
+        ### 📖 Explanation
+        - **Tippekassa** = sum of all payouts + monthly deposits  
+        - **Baseline** = total stake + monthly deposits  
+        - This graph shows how the fund grows over time, including both deposits and winnings.
+        """
+    )
+
+
+# --- Tab 9: The Prophet (Ask questions about the data) ---
 tab8 = st.tabs(["The Prophet"])[0]
 
 with tab8:
