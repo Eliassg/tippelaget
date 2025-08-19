@@ -370,6 +370,11 @@ with tab8:
         weekly["gameweek_num"], weekly["cum_payout_plus_innskudd"],
         marker="o", linewidth=2.5, color="#4CAF50", label="Total Winnings + Innskudd"
     )
+
+    # Add values on line
+    for x, y in zip(weekly["gameweek_num"], weekly["cum_payout_plus_innskudd"]):
+        ax.text(x, y, f"{y:.0f}", fontsize=9, color="#4CAF50", va="bottom", ha="right")
+
     ax.plot(
         weekly["gameweek_num"], weekly["cum_stake_plus_innskudd"],
         linestyle="--", linewidth=2, color="white", alpha=0.8, label="Total Stake + Innskudd (baseline)"
