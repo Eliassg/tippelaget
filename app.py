@@ -262,3 +262,56 @@ with tab6:
         labelcolor="white"
     )
     st.pyplot(fig, use_container_width=True)
+
+# --- Tab 7: Luckiness (Winnings vs Expected) ---
+tab7 = st.tabs(["Luckiness (Winnings vs Expected)"])[0]
+
+with tab7:
+    luck = df.groupby("player", as_index=False).agg(
+        total_payout=("payout", "sum"),
+        total_stake=("betNok", "sum")
+    )
+    luck["luck_ratio"] = luck["total_payout"] / luck["total_stake"]
+
+    # Sort so it's easier to see extremes
+    luck = luck.sort_values("luck_ratio", ascending=False)
+
+    fig, ax = new_fig((8,5))
+    sns.barplot(
+        data=luck, x="player", y="luck_ratio",
+        ax=ax, palette="coolwarm", edgecolor=None
+    )
+    style_ax_dark(ax, "Luckiness per player (payout ÷ stake)", ylabel="Luck Ratio")
+
+    # Horizontal line at 1 = fair odds
+    ax.axhline(1, linestyle="--", color="white", alpha=0.6)
+
+    # Format y-axis as %
+    ax.set_yticklabels([f"{int(y*100)}%" for y in ax.get_yticks()], color="white")
+
+    st.pyplot(fig, use_container_width=True)
+
+    # Formula explanation
+    st.markdown(
+        """
+        ### 📖 How luck is calculated  
+        For each player, we compute the ratio between **total winnings** and **total stake**:  
+
+        $$
+        \\text{Luck ratio} = \\frac{\\text{Total Payout}}{\\text{Total Stake}}
+        $$
+
+        - A value **> 1** means the player won **more than expected** (lucky).  
+        - A value **< 1** means the player won **less than expected** (unlucky).  
+        - **= 1** means exactly break-even compared to stake.  
+        """
+    )
+
+    # Highlight luckiest & unluckiest
+    luckiest = luck.iloc[0]
+    unluckiest = luck.iloc[-1]
+    st.markdown(
+        f"🏆 **Luckiest player (great ball knowledge):** {luckiest['player']} (ratio {luckiest['luck_ratio']:.2f})  \n"
+        f"💀 **Unluckiest player (less ball knowledge):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
+    )
+
