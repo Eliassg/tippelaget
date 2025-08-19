@@ -124,11 +124,21 @@ with tab3:
 
 # --- Tab 4: Win Rate ---
 with tab4:
-    winrate = df.groupby("player")["won"].mean().reset_index()
+    # Group by player + gameweek
+    weekly = df.groupby(["player", "gameweek"]).agg(
+        total_payout=("payout", "sum"),
+        total_bet=("betNok", "sum")
+    ).reset_index()
+
+    # Win if payout >= stake for that gameweek
+    weekly["won_week"] = weekly["total_payout"] >= weekly["total_bet"]
+
+    # Calculate win rate per player
+    winrate = weekly.groupby("player")["won_week"].mean().reset_index()
 
     fig, ax = plt.subplots()
-    sns.barplot(data=winrate, x="player", y="won", ax=ax)
-    ax.set_title("Win rate per player")
+    sns.barplot(data=winrate, x="player", y="won_week", ax=ax)
+    ax.set_title("Win rate per player (by gameweek)")
     ax.set_ylabel("Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()])
     st.pyplot(fig)
