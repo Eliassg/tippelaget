@@ -4,6 +4,8 @@ import requests
 from cognite.client import CogniteClient, ClientConfig
 from cognite.client.data_classes.data_modeling.ids import ViewId
 import altair as alt
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # -----------------------
 @st.cache_resource
@@ -59,9 +61,65 @@ def fetch_bet_view(
 # -----------------------
 # Streamlit App
 # -----------------------
-st.title("⚽ Betting Dashboard (CDF View)")
-st.caption("Always fetching the latest data from Cognite Data Fusion")
 
 # Fetch and display Bet view
 df = fetch_bet_view()
-st.write(df)
+
+st.title("📊 Tippelaget Player Comparison ⚽ ")
+
+# Convert gameweek string "GW_X" → integer
+df["gameweek_num"] = df["gameweek"].str.extract("GW_(\d+)").astype(int)
+
+# Win flag
+df["won"] = df["payout"] > 0
+
+# ---- Tabs ----
+tab1, tab2, tab3, tab4 = st.tabs([
+    "Total Payout", "Average Odds", "Cumulative Payout", "Win Rate"
+])
+
+# --- Tab 1: Total Payout ---
+with tab1:
+    payouts = df.groupby("player")["payout"].sum().reset_index()
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=payouts, x="player", y="payout", ax=ax)
+    ax.set_title("Total payout per player")
+    ax.set_ylabel("Total NOK")
+    st.pyplot(fig)
+
+# --- Tab 2: Average Odds ---
+with tab2:
+    odds = df.groupby("player")["odds"].mean().reset_index()
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=odds, x="player", y="odds", ax=ax)
+    ax.set_title("Average odds per player")
+    ax.set_ylabel("Mean odds")
+    st.pyplot(fig)
+
+# --- Tab 3: Cumulative payout over time ---
+with tab3:
+    df_sorted = df.sort_values(["player", "gameweek_num", "date"])
+    df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
+
+    fig, ax = plt.subplots()
+    for player, group in df_sorted.groupby("player"):
+        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", label=player)
+
+    ax.set_title("Cumulative payout per player")
+    ax.set_xlabel("Gameweek")
+    ax.set_ylabel("Cumulative NOK")
+    ax.legend()
+    st.pyplot(fig)
+
+# --- Tab 4: Win Rate ---
+with tab4:
+    winrate = df.groupby("player")["won"].mean().reset_index()
+
+    fig, ax = plt.subplots()
+    sns.barplot(data=winrate, x="player", y="won", ax=ax)
+    ax.set_title("Win rate per player")
+    ax.set_ylabel("Win rate (%)")
+    ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()])
+    st.pyplot(fig)
