@@ -228,9 +228,7 @@ with tab5:
     framealpha=0.6                    # semi-transparent so it doesn’t hide data
 )
 
-
     st.pyplot(fig, use_container_width=True)
-
 
 # --- Tab 6: Team total (all players summed) ---
 with tab6:
@@ -322,4 +320,40 @@ with tab7:
         f"💀 **Unluckiest player (Lack of ball knowledge?):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
     )
 
+# --- Tab 8: The Prophet (Ask questions about the data) ---
+tab8 = st.tabs(["The Prophet"])[0]
 
+with tab8:
+    st.markdown(
+        "### 🔮 Ask The Prophet anything about the betting data!\n"
+        "You can ask things like 'Who has the highest cumulative payout?' or 'Which player is the unluckiest?'"
+    )
+
+    user_question = st.text_input("Your question:", "")
+
+    if user_question:
+        # Prepare context: small summary of the data
+        context = (
+            f"Data contains {len(df)} bets across {df['player'].nunique()} players "
+            f"and {df['gameweek_num'].nunique()} gameweeks.\n"
+            "Columns: player, gameweek_num, payout, betNok, odds, cumulative_payout, won"
+        )
+
+        prompt = f"""
+        You are an assistant that answers questions about sports betting data. 
+        Here is the dataset summary:\n
+        {context}\n
+        Question: {user_question}\n
+        Answer in a concise, human-readable way.
+        """
+
+        # Call LLM (replace with your preferred API)
+        import openai
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3
+        )
+
+        answer = response.choices[0].message.content
+        st.markdown(f"**Prophet says:** {answer}")
