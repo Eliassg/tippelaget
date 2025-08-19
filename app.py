@@ -112,9 +112,9 @@ def new_fig(size=(8,5)):
     return plt.subplots(figsize=size, facecolor="#0E1117")
 
 # ---- Tabs ----
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", 
-    "Win Rate", "Cumulative vs Baseline", "Team Total"
+    "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness (Winnings vs Expected)"
 ])
 
 # --- Tab 1: Total Payout ---
@@ -263,55 +263,63 @@ with tab6:
     )
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 7: Luckiness (Winnings vs Expected) ---
-tab7 = st.tabs(["Luckiness (Winnings vs Expected)"])[0]
+# --- Tab 7: Luckiness (Actual vs Expected based on Odds) ---
 
 with tab7:
+    # Compute expected payout per bet
+    df["expected_payout"] = df["betNok"] / df["odds"]
+
+    # Aggregate by player
     luck = df.groupby("player", as_index=False).agg(
         total_payout=("payout", "sum"),
-        total_stake=("betNok", "sum")
+        total_expected=("expected_payout", "sum")
     )
-    luck["luck_ratio"] = luck["total_payout"] / luck["total_stake"]
+    luck["luck_ratio"] = luck["total_payout"] / luck["total_expected"]
 
-    # Sort so it's easier to see extremes
+    # Sort by luckiness
     luck = luck.sort_values("luck_ratio", ascending=False)
 
+    # Plot
     fig, ax = new_fig((8,5))
     sns.barplot(
         data=luck, x="player", y="luck_ratio",
         ax=ax, palette="coolwarm", edgecolor=None
     )
-    style_ax_dark(ax, "Luckiness per player (payout ÷ stake)", ylabel="Luck Ratio")
+    style_ax_dark(ax, "Luckiness per player (Actual ÷ Expected EV)", ylabel="Luck Ratio")
 
-    # Horizontal line at 1 = fair odds
+    # Baseline at 1 (fair expectation)
     ax.axhline(1, linestyle="--", color="white", alpha=0.6)
-
-    # Format y-axis as %
     ax.set_yticklabels([f"{int(y*100)}%" for y in ax.get_yticks()], color="white")
 
     st.pyplot(fig, use_container_width=True)
 
-    # Formula explanation
+    # Explanation with formula
     st.markdown(
         """
-        ### 📖 How luck is calculated  
-        For each player, we compute the ratio between **total winnings** and **total stake**:  
+        ### 📖 How luck is calculated using Expected Value (EV)
+        For each player, we compare **actual payout** to the **expected payout** based on odds:
 
         $$
-        \\text{Luck ratio} = \\frac{\\text{Total Payout}}{\\text{Total Stake}}
+        \\text{Luck ratio} = \\frac{\\text{Total Actual Payout}}{\\text{Total Expected Payout (EV)}} 
         $$
 
-        - A value **> 1** means the player won **more than expected** (lucky).  
-        - A value **< 1** means the player won **less than expected** (unlucky).  
-        - **= 1** means exactly break-even compared to stake.  
+        where for each bet:  
+        $$
+        \\text{Expected Payout (EV)} = \\text{Stake} \\times \\frac{1}{\\text{Odds}}
+        $$
+
+        - **> 1** → player won more than expected (lucky)  
+        - **< 1** → player won less than expected (unlucky)  
+        - **= 1** → exactly as expected
         """
     )
 
-    # Highlight luckiest & unluckiest
+    # Highlight extremes
     luckiest = luck.iloc[0]
     unluckiest = luck.iloc[-1]
     st.markdown(
-        f"🏆 **Luckiest player (great ball knowledge):** {luckiest['player']} (ratio {luckiest['luck_ratio']:.2f})  \n"
-        f"💀 **Unluckiest player (less ball knowledge):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
+        f"🏆 **Luckiest player:** {luckiest['player']} (ratio {luckiest['luck_ratio']:.2f})  \n"
+        f"💀 **Unluckiest player:** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
     )
+
 
