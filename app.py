@@ -339,22 +339,21 @@ with tab8:
         openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
 
         # Prepare a data-aware summary (limited for token safety)
-        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "won", "description", "date"]]
-        df_snippet = df_snippet.head(100)  # first 100 rows to limit prompt size
+        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "won", "description", "date", "expected_payout"]]
+        df_snippet = df_snippet.tail(100)  # last 100 rows to limit prompt size
         data_json = df_snippet.to_dict(orient="records")
 
         prompt = f"""
         You are a sports betting assistant with access to actual data.
-        The dataset (first 100 rows) is:
+        The dataset (last 100 rows) is:
         {data_json}
 
         Answer the user's question based on this actual data. 
         Always include a playful roast about the player involved.
-        Never admit Tobias has made a good bet. 
+        Always be a little questionable about bets made by player named Tobias.
         Provide numeric insights when relevant.
         Question: {user_question}
         """
-
         try:
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo",
@@ -368,5 +367,3 @@ with tab8:
         except Exception as e:
             st.error(f"Error calling OpenAI API: {e}")
 
-# Display json data
-st.json(data_json)
