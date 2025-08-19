@@ -65,7 +65,7 @@ def fetch_bet_view(
 # Fetch and display Bet view
 df = fetch_bet_view()
 
-st.title("📊 Tippelaget Player Comparison ⚽ ")
+st.title("📊 Tippelaget 2025 ⚽ ")
 
 # --- Flatten columns ---
 df = df.rename(columns={
@@ -110,7 +110,9 @@ with tab2:
 # --- Tab 3: Cumulative payout over time ---
 with tab3:
     df_sorted = df.sort_values(["player", "gameweek_num", "date"])
+    df_sorted["payout"] = df_sorted["payout"].fillna(0)  # replace NaN with 0
     df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
+
 
     fig, ax = plt.subplots()
     for player, group in df_sorted.groupby("player"):
