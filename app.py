@@ -386,7 +386,7 @@ with tab8:
 
     style_ax_dark(
         ax, 
-        title="Total Winnings + Monthly Innskudd vs Stake + Innskudd", 
+        title="Tippekassa vs Baseline", 
         xlabel="Gameweek", 
         ylabel="Cumulative NOK"
     )
