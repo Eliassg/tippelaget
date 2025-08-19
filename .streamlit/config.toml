@@ -1,0 +1,8 @@
+# .streamlit/config.toml
+[theme]
+base="dark"
+primaryColor="#00C9A7"    # teal accent (change if you like)
+backgroundColor="#0E1117"
+secondaryBackgroundColor="#1A1D23"
+textColor="white"
+font="sans serif"

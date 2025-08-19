@@ -87,38 +87,50 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", "Win Rate"
 ])
 
-# --- Dark mode style ---
-plt.style.use('dark_background')  # full dark background
-sns.set_theme(style="dark")       # Seaborn dark theme
-sns.set_palette("bright")          # bright colors for contrast
+# --- Global Dark Mode ---
+plt.style.use("dark_background")
+sns.set_theme(style="dark")
+sns.set_palette("Spectral")
 
 def style_ax_dark(ax, title, xlabel=None, ylabel=None):
     """Apply consistent dark-mode styling to axes."""
-    ax.set_facecolor('#222222')  # dark panel
+    ax.set_facecolor("#0E1117")  # match Streamlit dark bg
     ax.set_title(title, fontsize=16, weight="bold", color="white")
     if xlabel:
         ax.set_xlabel(xlabel, fontsize=12, color="white")
     if ylabel:
         ax.set_ylabel(ylabel, fontsize=12, color="white")
-    ax.tick_params(axis='x', rotation=45, colors='white')
-    ax.tick_params(axis='y', colors='white')
-    ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.5, color='gray')
+
+    # Tick styling
+    ax.tick_params(axis='x', rotation=45, colors="white")
+    ax.tick_params(axis='y', colors="white")
+
+    # Minimal grid
+    ax.grid(True, linestyle="--", linewidth=0.6, alpha=0.4, color="gray")
+
+    # Hide spines
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+def new_fig(size=(8,5)):
+    """Create borderless dark figure."""
+    return plt.subplots(figsize=size, facecolor="#0E1117")
 
 # --- Tab 1: Total Payout ---
 with tab1:
     payouts = df.groupby("player")["payout"].sum().reset_index()
-    fig, ax = plt.subplots(figsize=(8,5))
-    sns.barplot(data=payouts, x="player", y="payout", ax=ax, palette="coolwarm")
+    fig, ax = new_fig((8,5))
+    sns.barplot(data=payouts, x="player", y="payout", ax=ax, palette="coolwarm", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Total payout per player", ylabel="Total NOK")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
 
 # --- Tab 2: Average Odds ---
 with tab2:
     odds = df.groupby("player")["odds"].mean().reset_index()
-    fig, ax = plt.subplots(figsize=(8,5))
-    sns.barplot(data=odds, x="player", y="odds", ax=ax, palette="mako")
+    fig, ax = new_fig((8,5))
+    sns.barplot(data=odds, x="player", y="odds", ax=ax, palette="mako", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Average odds per player", ylabel="Mean odds")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
 
 # --- Tab 3: Cumulative payout over time ---
 with tab3:
@@ -126,16 +138,31 @@ with tab3:
     df_sorted["payout"] = df_sorted["payout"].fillna(0)
     df_sorted["cumulative_payout"] = df_sorted.groupby("player")["payout"].cumsum()
 
-    fig, ax = plt.subplots(figsize=(10,6))
-    colors = sns.color_palette("bright", n_colors=df_sorted["player"].nunique())
+    fig, ax = new_fig((10,6))
+    colors = sns.color_palette("Spectral", n_colors=df_sorted["player"].nunique())
     for (player, group), color in zip(df_sorted.groupby("player"), colors):
-        ax.plot(group["gameweek_num"], group["cumulative_payout"], marker="o", linewidth=2.5, label=player, color=color)
-        ax.text(group["gameweek_num"].iloc[-1]+0.1, group["cumulative_payout"].iloc[-1],
-                f"{group['cumulative_payout'].iloc[-1]:.0f}", fontsize=9, color=color)
+        ax.plot(
+            group["gameweek_num"], group["cumulative_payout"],
+            marker="o", markersize=6, linewidth=2.2, alpha=0.85, label=player, color=color
+        )
+        # annotate last point
+        ax.text(
+            group["gameweek_num"].iloc[-1] + 0.1,
+            group["cumulative_payout"].iloc[-1],
+            f"{group['cumulative_payout'].iloc[-1]:.0f}",
+            fontsize=9, color=color
+        )
 
     style_ax_dark(ax, "Cumulative payout per player", xlabel="Gameweek", ylabel="Cumulative NOK")
-    ax.legend(title="Player", bbox_to_anchor=(1.05, 1), loc="upper left", facecolor="#222222", edgecolor="white", labelcolor="white")
-    st.pyplot(fig)
+    ax.legend(
+        title="Player",
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        facecolor="#0E1117",
+        edgecolor="none",
+        labelcolor="white"
+    )
+    st.pyplot(fig, use_container_width=True)
 
 # --- Tab 4: Win Rate ---
 with tab4:
@@ -146,8 +173,8 @@ with tab4:
     weekly["won_week"] = weekly["total_payout"] >= weekly["total_bet"]
     winrate = weekly.groupby("player")["won_week"].mean().reset_index()
 
-    fig, ax = plt.subplots(figsize=(8,5))
-    sns.barplot(data=winrate, x="player", y="won_week", ax=ax, palette="flare")
+    fig, ax = new_fig((8,5))
+    sns.barplot(data=winrate, x="player", y="won_week", ax=ax, palette="flare", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Win rate per player (by gameweek)", ylabel="Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
-    st.pyplot(fig)
+    st.pyplot(fig, use_container_width=True)
