@@ -6,6 +6,7 @@ from cognite.client.data_classes.data_modeling.ids import ViewId
 import altair as alt
 import matplotlib.pyplot as plt
 import seaborn as sns
+import openai
 
 # -----------------------
 @st.cache_resource
@@ -324,15 +325,19 @@ with tab7:
 tab8 = st.tabs(["The Prophet"])[0]
 
 with tab8:
+    st.header("🔮 The Prophet")
     st.markdown(
-        "### 🔮 Ask The Prophet anything about the betting data!\n"
-        "You can ask things like 'Who has the highest cumulative payout?' or 'Which player is the unluckiest?'"
+        "Ask questions about the betting season, e.g., 'Which player has the best ball knowledge? ⚽️ 🚀 '"
     )
 
-    user_question = st.text_input("Your question:", "")
+    # User input
+    user_question = st.text_input("Ask your question:")
 
     if user_question:
-        # Prepare context: small summary of the data
+        # Set API key from Streamlit secrets
+        openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
+
+        # Provide a concise summary of the dataframe as context
         context = (
             f"Data contains {len(df)} bets across {df['player'].nunique()} players "
             f"and {df['gameweek_num'].nunique()} gameweeks.\n"
@@ -340,20 +345,23 @@ with tab8:
         )
 
         prompt = f"""
-        You are an assistant that answers questions about sports betting data. 
-        Here is the dataset summary:\n
+        You are a sports betting assistant. The dataset summary is:\n
         {context}\n
         Question: {user_question}\n
-        Answer in a concise, human-readable way.
+        Answer concisely and in human-readable form. Always include a roast about the player that is asked about, or is the answer to the question. Never admit that Tobias have made a good bet in his life.
         """
 
-        # Call LLM (replace with your preferred API)
-        import openai
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
+        # Call OpenAI ChatCompletion (v1.x)
+        try:
+            response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.3
-        )
+            )
 
-        answer = response.choices[0].message.content
-        st.markdown(f"**Prophet says:** {answer}")
+
+            answer = response.choices[0].message.content
+            st.markdown(f"**Prophet says:** {answer}")
+
+        except Exception as e:
+            st.error(f"Error calling OpenAI API: {e}")
