@@ -63,7 +63,6 @@ def fetch_bet_view(
 # -----------------------
 
 # Fetch and display Bet view
-# Fetch and display Bet view
 df = fetch_bet_view()
 
 st.title("📊 Tippelaget Player Comparison ⚽ ")
