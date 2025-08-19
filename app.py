@@ -180,7 +180,7 @@ with tab4:
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 5: Cumulative payout vs baseline (shared stake) ---
+# --- Tab 5: Cumulative payout vs baseline (shared per-player stake) ---
 with tab5:
     # Aggregate by player + gameweek
     weekly = df.groupby(["player", "gameweek_num"], as_index=False).agg(
@@ -191,8 +191,11 @@ with tab5:
     # Cumulative payout per player
     weekly["cumulative_payout"] = weekly.groupby("player")["payout"].cumsum()
 
-    # Compute the shared baseline (stake is same for all players each GW)
-    baseline = weekly.groupby("gameweek_num")["stake"].sum().cumsum().reset_index()
+    # Shared baseline = team stake / number of players
+    n_players = weekly["player"].nunique()
+    baseline = (
+        weekly.groupby("gameweek_num")["stake"].sum().cumsum() / n_players
+    ).reset_index(name="per_player_stake")
 
     fig, ax = new_fig((10,6))
     colors = sns.color_palette("Set2", n_colors=weekly["player"].nunique())
@@ -204,13 +207,13 @@ with tab5:
             marker="o", linewidth=2, alpha=0.9, color=color, label=player
         )
 
-    # Shared baseline
+    # Shared baseline (per player)
     ax.plot(
-        baseline["gameweek_num"], baseline["stake"],
-        linestyle="--", linewidth=2.2, alpha=0.9, color="white", label="Baseline (stake)"
+        baseline["gameweek_num"], baseline["per_player_stake"],
+        linestyle="--", linewidth=2.2, alpha=0.9, color="white", label="Baseline (stake/share)"
     )
 
-    style_ax_dark(ax, "Cumulative payout vs shared stake", xlabel="Gameweek", ylabel="Cumulative NOK")
+    style_ax_dark(ax, "Cumulative payout vs baseline (equal stake share)", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
         title="Player / Metric",
         bbox_to_anchor=(1.05, 1),
