@@ -156,13 +156,14 @@ with tab3:
 
     style_ax_dark(ax, "Cumulative payout per player", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
-        title="Player",
-        bbox_to_anchor=(1.05, 1),
-        loc="upper left",
-        facecolor="#0E1117",
-        edgecolor="none",
-        labelcolor="white"
+    title="Player",
+    loc="upper left",
+    frameon=False,
+    facecolor="#0E1117",
+    edgecolor="none",
+    labelcolor="white"
     )
+
     st.pyplot(fig, use_container_width=True)
 
 # --- Tab 4: Win Rate ---
@@ -215,13 +216,13 @@ with tab5:
 
     style_ax_dark(ax, "Cumulative payout vs baseline (equal stake share)", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(
-        title="Player / Metric",
-        bbox_to_anchor=(1.05, 1),
-        loc="upper left",
-        facecolor="#0E1117",
-        edgecolor="none",
-        labelcolor="white"
-    )
+    title="Player / Metric",
+    loc="upper left",
+    frameon=False,
+    facecolor="#0E1117",
+    edgecolor="none",
+    labelcolor="white")
+
     st.pyplot(fig, use_container_width=True)
 
 
