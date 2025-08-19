@@ -218,10 +218,16 @@ with tab5:
     ax.legend(
     title="Player / Metric",
     loc="upper left",
-    frameon=False,
-    facecolor="#0E1117",
+    frameon=True,                     # keep a box so text is visible
+    facecolor="black",                # slightly lighter than background
     edgecolor="none",
-    labelcolor="white")
+    labelcolor="white",
+    fontsize=9,
+    title_fontsize=10,
+    fancybox=True,                    # rounded corners
+    framealpha=0.6                    # semi-transparent so it doesn’t hide data
+)
+
 
     st.pyplot(fig, use_container_width=True)
 
