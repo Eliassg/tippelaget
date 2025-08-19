@@ -367,3 +367,6 @@ with tab8:
 
         except Exception as e:
             st.error(f"Error calling OpenAI API: {e}")
+
+# Display json data
+st.json(data_json)
