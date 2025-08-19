@@ -380,6 +380,10 @@ with tab8:
         linestyle="--", linewidth=2, color="white", alpha=0.8, label="Total Stake + Innskudd (baseline)"
     )
 
+    # Add values on line
+    for x, y in zip(weekly["gameweek_num"], weekly["cum_stake_plus_innskudd"]):
+        ax.text(x, y, f"{y:.0f}", fontsize=9, color="white", va="bottom", ha="right")
+
     style_ax_dark(
         ax, 
         title="Total Winnings + Monthly Innskudd vs Stake + Innskudd", 
