@@ -338,7 +338,7 @@ with tab7:
 with tab8:
     # Convert date columns to datetime
     df["date"] = pd.to_datetime(df["date"])
-    innskudd_df = create_monthly_innskudd_df
+    innskudd_df = create_monthly_innskudd_df()
 
     # Assign gameweek_num to innskudd by matching closest previous gameweek
     gw_dates = df.groupby("gameweek_num")["date"].min().reset_index()
