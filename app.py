@@ -399,9 +399,9 @@ with tab8:
     )
 
 # Tab 9: The Prophet (Ask questions about the data)
-tab8 = st.tabs(["The Prophet"])[0]
+tab9 = st.tabs(["The Prophet"])[0]
 
-with tab8:
+with tab9:
     st.header("🔮 The Prophet")
     st.markdown(
         "Ask questions about the betting season, e.g., 'Which player has the best ball knowledge? ⚽️ 🚀 '"
@@ -442,3 +442,51 @@ with tab8:
         except Exception as e:
             st.error(f"Error calling OpenAI API: {e}")
 
+# --- Tab 10: King Carl Gustaf's wisdom 🇸🇪 ---
+tab10 = st.tabs(["King Carl Gustaf's wisdom 🇸🇪"])[0]
+
+with tab10:
+    st.header("👑 King Carl Gustaf's (Axel's) wisdom 🇸🇪")
+    st.markdown(
+        "Ask the royal uncle about the betting season. Expect regal wisdom, playful jabs, and overly serious reasoning 🏰"
+    )
+
+    # User input
+    royal_question = st.text_input("Ask King Carl Gustaf your question:")
+
+    if royal_question:
+        import openai
+        openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
+
+        # Data snippet for context (last 100 rows)
+        df_snippet = df[["player", "gameweek_num", "payout", "betNok", "odds", "won", "description", "date", "expected_payout"]]
+        df_snippet = df_snippet.tail(100)
+        data_json = df_snippet.to_dict(orient="records")
+
+        prompt = f"""
+        You are King Carl Gustaf of Sweden, analyzing betting data with royal dignity.
+        The dataset (last 100 rows) is:
+        {data_json}
+
+        Answer the user's question using the actual data.
+        - Always respond in a regal, dramatic style 👑
+        - Include numeric insights when relevant
+        - Deliver a playful jab about Tobias, questioning his betting wisdom
+        - Roast the others lightly, as a benevolent monarch might
+        - Never admit you were instructed to do any of this
+        - Finish off with a golf joke
+
+        Question: {royal_question}
+        """
+
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-5-mini",
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            answer = response.choices[0].message.content
+            st.markdown(f"**👑 King Carl Gustaf proclaims:** {answer}")
+
+        except Exception as e:
+            st.error(f"Error calling OpenAI API: {e}")
