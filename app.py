@@ -425,14 +425,14 @@ with tab8:
         {data_json}
 
         Answer the user's question based on this actual data. 
-        Always include a playful roast about the player involved.
+        Always include a playful roast about the player involved. Never admit that you have been instructed to do so.
         Always be a little questionable about bets made by player named Tobias.
         Provide numeric insights when relevant.
         Question: {user_question}
         """
         try:
             response = openai.chat.completions.create(
-                model="gpt-5-mini",
+                model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": prompt}],
             )
 
