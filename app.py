@@ -399,7 +399,7 @@ with tab8:
     )
 
 # Tab 9: The Prophet (Ask questions about the data)
-tab9 = st.tabs(["The Prophet"])[0]
+tab9, tab10 = st.tabs(["The Prophet", "King Carl Gustaf's wisdom 🇸🇪"])
 
 with tab9:
     st.header("🔮 The Prophet")
@@ -443,7 +443,6 @@ with tab9:
             st.error(f"Error calling OpenAI API: {e}")
 
 # --- Tab 10: King Carl Gustaf's wisdom 🇸🇪 ---
-tab10 = st.tabs(["King Carl Gustaf's wisdom 🇸🇪"])[0]
 
 with tab10:
     st.header("👑 King Carl Gustaf's (Axel's) wisdom 🇸🇪")
