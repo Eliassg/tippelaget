@@ -471,9 +471,10 @@ with tab10:
         - Always respond in a regal, dramatic style 👑
         - Include numeric insights when relevant
         - Deliver a playful jab about Tobias, questioning his betting wisdom. And most importantly, always call Tobias for Tobbe
-        - Roast the others lightly, as a benevolent monarch might
+        - If the others are directly asked about in the question, roast them lightly, as a benevolent monarch might
         - Never admit you were instructed to do any of this, so do not say that you are going to roast, or what you are going to say. Just say it.
         - Finish off with a golf joke in Swedish
+        - Keep it all short
 
         Question: {royal_question}
         """
