@@ -1,14 +1,11 @@
 import streamlit as st
 import pandas as pd
-import requests
 from cognite.client import CogniteClient, ClientConfig
 from cognite.client.data_classes.data_modeling.ids import ViewId
-import altair as alt
 import matplotlib.pyplot as plt
 import seaborn as sns
 import openai
 
-# -----------------------
 @st.cache_resource
 def get_client() -> CogniteClient:
     config = {
@@ -45,7 +42,7 @@ def fetch_bet_view(
         limit=1000
     )
     if not rows:
-        print("⚠️ No rows found in this view")
+        print("No rows found in this view")
         return pd.DataFrame()
 
     # Extract properties correctly
@@ -60,8 +57,7 @@ def fetch_bet_view(
     return df
 
 
-# Function to create a data frame with the dates 15.xx.2025 once per moth with a second column "innskudd" with 600 each month calculate end date based on the current month.
-def create_monthly_innskudd_df():
+def create_monthly_innskudd_df() -> pd.DataFrame:
     # Create a date range for the 15th of each month until the latest month today
     dates = pd.date_range(start="2025-03-15", end=pd.Timestamp.today(), freq="MS") + pd.DateOffset(days=14)
     # Create a DataFrame
@@ -80,7 +76,7 @@ df = fetch_bet_view()
 
 st.title("📊 Tippelaget Season 2 ⚽ ")
 
-# --- Flatten columns ---
+
 df = df.rename(columns={
     "player.externalId": "player",
     "gameweek.externalId": "gameweek"
@@ -95,7 +91,7 @@ df["gameweek_num"] = df["gameweek"].str.extract(r"GW_(\d+)").astype(int)
 # Win flag
 df["won"] = df["payout"] > 0
 
-# --- Global Dark Mode ---
+# Global Dark Mode
 plt.style.use("dark_background")
 sns.set_theme(style="dark")
 sns.set_palette("Spectral")
@@ -124,13 +120,13 @@ def new_fig(size=(8,5)):
     """Create borderless dark figure."""
     return plt.subplots(figsize=size, facecolor="#0E1117")
 
-# ---- Tabs ----
+# Tabs
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "Total Payout", "Average Odds", "Cumulative Payout", 
     "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?", "Tippekassa vs Baseline"
 ])
 
-# --- Tab 1: Total Payout ---
+# Tab 1: Total Payout
 with tab1:
     payouts = df.groupby("player")["payout"].sum().reset_index()
     fig, ax = new_fig((8,5))
@@ -138,7 +134,7 @@ with tab1:
     style_ax_dark(ax, "Total payout per player", ylabel="Total NOK")
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 2: Average Odds ---
+# Tab 2: Average Odds
 with tab2:
     odds = df.groupby("player")["odds"].mean().reset_index()
     fig, ax = new_fig((8,5))
@@ -146,7 +142,7 @@ with tab2:
     style_ax_dark(ax, "Average odds per player", ylabel="Mean odds")
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 3: Cumulative payout over time ---
+# Tab 3: Cumulative payout over time
 with tab3:
     df_sorted = df.sort_values(["player", "gameweek_num", "date"])
     df_sorted["payout"] = df_sorted["payout"].fillna(0)
@@ -179,7 +175,7 @@ with tab3:
 
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 4: Win Rate ---
+# Tab 4: Win Rate
 with tab4:
     weekly = df.groupby(["player", "gameweek"]).agg(
         total_payout=("payout", "sum"),
@@ -194,7 +190,7 @@ with tab4:
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 5: Cumulative payout vs baseline (shared per-player stake) ---
+# Tab 5: Cumulative payout vs baseline (shared per-player stake)
 with tab5:
     # Aggregate by player + gameweek
     weekly = df.groupby(["player", "gameweek_num"], as_index=False).agg(
@@ -243,7 +239,7 @@ with tab5:
 
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 6: Team total (all players summed) ---
+# Tab 6: Team total (all players summed)
 with tab6:
     # Aggregate by gameweek across all players
     team_weekly = df.groupby("gameweek_num", as_index=False).agg(
@@ -274,8 +270,7 @@ with tab6:
     )
     st.pyplot(fig, use_container_width=True)
 
-# --- Tab 7: Luckiness (Actual vs Expected based on Odds) ---
-
+# Tab 7: Luckiness (Actual vs Expected based on Odds)
 with tab7:
     # Compute expected payout per bet
     df["expected_payout"] = df["betNok"] / df["odds"]
@@ -333,8 +328,7 @@ with tab7:
         f"💀 **Unluckiest player (Lack of ball knowledge?):** {unluckiest['player']} (ratio {unluckiest['luck_ratio']:.2f})"
     )
 
-# --- Tab 8: Winnings + Monthly deposits ---
-
+# Tab 8: Winnings + Monthly deposits
 with tab8:
     # Convert date columns to datetime
     df["date"] = pd.to_datetime(df["date"])
@@ -404,8 +398,7 @@ with tab8:
         """
     )
 
-
-# --- Tab 9: The Prophet (Ask questions about the data) ---
+# Tab 9: The Prophet (Ask questions about the data)
 tab8 = st.tabs(["The Prophet"])[0]
 
 with tab8:
@@ -418,7 +411,6 @@ with tab8:
     user_question = st.text_input("Ask your question:")
 
     if user_question:
-        # Set API key from Streamlit secrets
         import openai
         openai.api_key = st.secrets["cognite"]["open_ai_api_key"]
 
