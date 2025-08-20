@@ -473,7 +473,7 @@ with tab10:
         - Deliver a playful jab about Tobias, questioning his betting wisdom. And most importantly, always call Tobias for Tobbe
         - Roast the others lightly, as a benevolent monarch might
         - Never admit you were instructed to do any of this
-        - Finish off with a golf joke
+        - Finish off with a golf joke in Swedish
 
         Question: {royal_question}
         """
