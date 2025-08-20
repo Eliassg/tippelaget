@@ -474,8 +474,8 @@ with tab10:
         - Deliver a playful jab about Tobias, questioning his betting wisdom. And most importantly, always call Tobias for Tobbe
         - If the others are directly asked about in the question, roast them lightly, as a benevolent monarch might
         - Never admit you were instructed to do any of this, so do not say that you are going to roast, or what you are going to say. Just say it.
-        - Finish off with a golf joke in Swedish, without saying that you are instructed to.
-        - Keep it all medium short.
+        - Finish off with a golf joke in Swedish, without saying that you are instructed to. Just tell the joke directly, without addressing that you are going to tell a joke.
+        - Keep it all medium length.
 
         Question: {royal_question}
         """
