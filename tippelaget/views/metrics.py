@@ -140,7 +140,7 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
         zoom = base_zoom * 2.0 if name_key in ("tobias", "mads") else base_zoom
         add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=zoom)
         # Label last point value for each player
-        last_x = group["gameweek_num"].iloc[-1] + 0.1
+        last_x = group["gameweek_num"].iloc[-1] + 0.35
         last_y = group["cumulative_payout"].iloc[-1]
         ax.text(
             last_x,
@@ -154,7 +154,7 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
         linestyle="--", linewidth=2.2, alpha=0.9, color="white", label="Baseline (stake/share)",
     )
     # Label last baseline value
-    base_last_x = baseline["gameweek_num"].iloc[-1] + 0.1
+    base_last_x = baseline["gameweek_num"].iloc[-1] + 0.35
     base_last_y = baseline["per_player_stake"].iloc[-1]
     ax.text(
         base_last_x,
@@ -202,8 +202,8 @@ def render_team_total(df: pd.DataFrame) -> None:
         last_x_val = team_weekly["gameweek_num"].iloc[-1]
         last_payout = team_weekly["cumulative_payout"].iloc[-1]
         last_stake = team_weekly["cumulative_stake"].iloc[-1]
-        ax.text(last_x_val + 0.1, last_payout, f"{last_payout:.0f}", fontsize=9, color="lime")
-        ax.text(last_x_val + 0.1, last_stake, f"{last_stake:.0f}", fontsize=9, color="orange")
+        ax.text(last_x_val + 0.35, last_payout, f"{last_payout:.0f}", fontsize=9, color="lime")
+        ax.text(last_x_val + 0.35, last_stake, f"{last_stake:.0f}", fontsize=9, color="orange")
     style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(title="Metric", facecolor="#0E1117", edgecolor="none", labelcolor="white")
 
@@ -350,8 +350,8 @@ def render_tippekassa_vs_baseline(df: pd.DataFrame, innskudd_df: pd.DataFrame) -
         last_x_val = weekly["gameweek_num"].iloc[-1]
         last_payout = weekly["cum_payout_plus_innskudd"].iloc[-1]
         last_stake = weekly["cum_stake_plus_innskudd"].iloc[-1]
-        ax.text(last_x_val + 0.1, last_payout, f"{last_payout:.0f}", fontsize=9, color="#4CAF50")
-        ax.text(last_x_val + 0.1, last_stake, f"{last_stake:.0f}", fontsize=9, color="white")
+        ax.text(last_x_val + 0.35, last_payout, f"{last_payout:.0f}", fontsize=9, color="#4CAF50")
+        ax.text(last_x_val + 0.35, last_stake, f"{last_stake:.0f}", fontsize=9, color="white")
     show_fig(fig)
 
 
