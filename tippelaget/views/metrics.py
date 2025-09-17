@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-from ..ui.plotting import new_fig, style_ax_dark, show_fig
+from ..ui.plotting import new_fig, style_ax_dark, show_fig, load_player_head_image, add_image_markers
 
 
 def render_total_payout(df: pd.DataFrame) -> None:
@@ -12,6 +12,19 @@ def render_total_payout(df: pd.DataFrame) -> None:
     fig, ax = new_fig((8, 5))
     sns.barplot(data=payouts, x="player", y="payout", ax=ax, palette="coolwarm", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Total payout per player", ylabel="Total NOK")
+    # Value labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        ax.text(
+            p.get_x() + p.get_width() / 2,
+            height,
+            f"{height:.0f}",
+            ha="center",
+            va="bottom",
+            color="white",
+            fontsize=9,
+        )
+    ax.margins(y=0.08)
     show_fig(fig)
 
 
@@ -20,6 +33,19 @@ def render_average_odds(df: pd.DataFrame) -> None:
     fig, ax = new_fig((8, 5))
     sns.barplot(data=odds, x="player", y="odds", ax=ax, palette="mako", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Average odds per player", ylabel="Mean odds")
+    # Value labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        ax.text(
+            p.get_x() + p.get_width() / 2,
+            height,
+            f"{height:.2f}",
+            ha="center",
+            va="bottom",
+            color="white",
+            fontsize=9,
+        )
+    ax.margins(y=0.08)
     show_fig(fig)
 
 
@@ -35,6 +61,9 @@ def render_cumulative_payout(df: pd.DataFrame) -> None:
             group["gameweek_num"], group["cumulative_payout"],
             marker="o", markersize=6, linewidth=2.2, alpha=0.85, label=player, color=color
         )
+        # Overlay player head as marker
+        img = load_player_head_image(player)
+        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=0.11)
         ax.text(
             group["gameweek_num"].iloc[-1] + 0.1,
             group["cumulative_payout"].iloc[-1],
@@ -66,6 +95,19 @@ def render_win_rate(df: pd.DataFrame) -> None:
     sns.barplot(data=winrate, x="player", y="won_week", ax=ax, palette="flare", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Win rate per player (by gameweek)", ylabel="Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
+    # Value labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        ax.text(
+            p.get_x() + p.get_width() / 2,
+            height,
+            f"{height*100:.0f}%",
+            ha="center",
+            va="bottom",
+            color="white",
+            fontsize=9,
+        )
+    ax.margins(y=0.08)
     show_fig(fig)
 
 
@@ -88,6 +130,9 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
             group["gameweek_num"], group["cumulative_payout"],
             marker="o", linewidth=2, alpha=0.9, color=color, label=player,
         )
+        # Overlay player head as marker
+        img = load_player_head_image(player)
+        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=0.11)
         # Label last point value for each player
         last_x = group["gameweek_num"].iloc[-1] + 0.1
         last_y = group["cumulative_payout"].iloc[-1]
@@ -218,6 +263,19 @@ def render_luckiness(df: pd.DataFrame) -> None:
     style_ax_dark(ax, "Luckiness per player / Ball knowledge? (Actual ÷ EV)", ylabel="Luck Ratio (Ball knowledge?)")
     ax.axhline(1, linestyle="--", color="white", alpha=0.6)
     ax.set_yticklabels([f"{int(y*100)}%" for y in ax.get_yticks()], color="white")
+    # Value labels on bars
+    for p in ax.patches:
+        height = p.get_height()
+        ax.text(
+            p.get_x() + p.get_width() / 2,
+            height,
+            f"{height*100:.0f}%",
+            ha="center",
+            va="bottom",
+            color="white",
+            fontsize=9,
+        )
+    ax.margins(y=0.08)
     show_fig(fig)
 
     st.markdown(
