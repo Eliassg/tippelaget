@@ -24,6 +24,7 @@ def main() -> None:
     st.markdown(
         """
         <style>
+        h1 { text-align: center; }
         @media (max-width: 640px) {
           .block-container { padding-top: 0.5rem; padding-bottom: 1.25rem; padding-left: 0.6rem; padding-right: 0.6rem; }
           .stTabs [role="tablist"] { overflow-x: auto; white-space: nowrap; gap: 0.25rem; }
