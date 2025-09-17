@@ -78,3 +78,8 @@ def execute_workflow(wf_external_id: str, version="1") -> WorkFlowExecution:
     client = get_client()
     res = client.workflows.executions.run(workflow_external_id=wf_external_id, version=version)
     return res
+
+def check_workflow_status(execution_id: int) -> str:
+    client = get_client()
+    res = client.workflows.executions.retrieve(execution_id)
+    return res.status
