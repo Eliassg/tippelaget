@@ -73,4 +73,7 @@ def get_prepared_bets() -> pd.DataFrame:
     df = fetch_bet_view()
     return prepare_bets_df(df)
 
-
+def execute_workflow(workflow_external_id: str) -> TransformationJob:
+    client = get_client()
+    res = client.data_modeling.workflows.run(workflow_external_id)
+    return res
