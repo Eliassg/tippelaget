@@ -59,7 +59,7 @@ def main() -> None:
         render_king(df)
 
     #button to execute workflow to update the bets view
-    if st.button("Update Bets View"):
+    if st.button("Populate data model"):
         from tippelaget.core.data import execute_workflow
         with st.spinner("Updating... This may take a while."):
             res = execute_workflow("wf_tippelaget_workflow")

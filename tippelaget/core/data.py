@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 from cognite.client.data_classes.data_modeling.ids import ViewId
 
+
 from .client import get_client
 from .config import DEFAULT_SPACE, DEFAULT_VIEW, DEFAULT_VIEW_VERSION
 
@@ -75,5 +76,5 @@ def get_prepared_bets() -> pd.DataFrame:
 
 def execute_workflow(workflow_external_id: str) -> TransformationJob:
     client = get_client()
-    res = client.data_modeling.workflows.run(workflow_external_id)
+    res = client.workflows.run(workflow_external_id)
     return res
