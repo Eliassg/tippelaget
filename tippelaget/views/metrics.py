@@ -68,7 +68,7 @@ def render_cumulative_payout(df: pd.DataFrame) -> None:
         zoom = base_zoom * 2.0 if name_key in ("tobias", "mads") else base_zoom
         add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=zoom)
         ax.text(
-            group["gameweek_num"].iloc[-1] + 0.1,
+            group["gameweek_num"].iloc[-1] + 0.35,
             group["cumulative_payout"].iloc[-1],
             f"{group['cumulative_payout'].iloc[-1]:.0f}",
             fontsize=9, color=color,
