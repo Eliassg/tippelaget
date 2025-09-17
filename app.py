@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-from tippelaget.core.data import check_workflow_status, get_prepared_bets, create_monthly_innskudd_df
+from tippelaget.core.data import get_prepared_bets, create_monthly_innskudd_df
 from tippelaget.ui.plotting import configure_theme
 from tippelaget.views.metrics import (
     render_total_payout,
@@ -60,7 +60,7 @@ def main() -> None:
 
     #button to execute workflow to update the bets view
     if st.button("Populate data model"):
-        from tippelaget.core.data import execute_workflow
+        from tippelaget.core.data import execute_workflow, check_workflow_status
         with st.spinner("Updating... This may take a while."):
             res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
             st.success(f"Workflow started with job id: {res.id}. It may take a few minutes to complete.")
