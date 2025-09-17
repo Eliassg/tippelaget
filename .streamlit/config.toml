@@ -1,3 +1,13 @@
+[theme]
+base = "dark"
+primaryColor = "#4CAF50"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1B1F2A"
+textColor = "#FFFFFF"
+
+[server]
+runOnSave = true
+
 # .streamlit/config.toml
 [theme]
 base="dark"

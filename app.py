@@ -58,6 +58,13 @@ def main() -> None:
     with tab10:
         render_king(df)
 
+    #button to execute workflow to update the bets view
+    if st.button("Update Bets View"):
+        from tippelaget.core.data import execute_workflow
+        with st.spinner("Updating... This may take a while."):
+            res = execute_workflow("wf_tippelaget_workflow")
+            st.success(f"Workflow started with job id: {res.id}. It may take a few minutes to complete.")
+            st.info("Please refresh the page after a while to see updated data." + f"{res}")
 
 if __name__ == "__main__":
     main()
