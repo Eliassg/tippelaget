@@ -62,6 +62,7 @@ def prepare_bets_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=0)
 def create_monthly_innskudd_df() -> pd.DataFrame:
     dates = pd.date_range(
         start="2025-03-15", end=pd.Timestamp.today(), freq="MS"
@@ -70,6 +71,7 @@ def create_monthly_innskudd_df() -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=0)
 def get_prepared_bets() -> pd.DataFrame:
     df = fetch_bet_view()
     return prepare_bets_df(df)

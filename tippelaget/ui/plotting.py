@@ -9,6 +9,8 @@ def configure_theme() -> None:
     plt.style.use("dark_background")
     sns.set_theme(style="dark")
     sns.set_palette("Spectral")
+    # Reduce default DPI to lighten payload on mobile
+    plt.rcParams["figure.dpi"] = 96
 
 
 def style_ax_dark(ax, title: str, xlabel: str | None = None, ylabel: str | None = None) -> None:
