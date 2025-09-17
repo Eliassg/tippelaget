@@ -142,7 +142,16 @@ def render_luckiness(df: pd.DataFrame) -> None:
     luck = luck.sort_values("luck_ratio", ascending=False)
 
     fig, ax = new_fig((8, 5))
-    sns.barplot(data=luck, x="player", y="luck_ratio", ax=ax, palette="coolwarm", edgecolor=None)
+    sns.barplot(
+        data=luck,
+        x="player",
+        y="luck_ratio",
+        ax=ax,
+        palette="coolwarm",
+        edgecolor=None,
+        linewidth=0,
+        alpha=0.9,
+    )
     style_ax_dark(ax, "Luckiness per player / Ball knowledge? (Actual ÷ EV)", ylabel="Luck Ratio (Ball knowledge?)")
     ax.axhline(1, linestyle="--", color="white", alpha=0.6)
     ax.set_yticklabels([f"{int(y*100)}%" for y in ax.get_yticks()], color="white")
