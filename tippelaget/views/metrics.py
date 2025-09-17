@@ -128,6 +128,42 @@ def render_team_total(df: pd.DataFrame) -> None:
     )
     style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(title="Metric", facecolor="#0E1117", edgecolor="none", labelcolor="white")
+
+    # Draw difference bar at the latest gameweek between the two lines and label the numeric value
+    if not team_weekly.empty:
+        last_row = team_weekly.sort_values("gameweek_num").iloc[-1]
+        last_x = last_row["gameweek_num"]
+        payout_last = float(last_row["cumulative_payout"]) if not pd.isna(last_row["cumulative_payout"]) else 0.0
+        stake_last = float(last_row["cumulative_stake"]) if not pd.isna(last_row["cumulative_stake"]) else 0.0
+        diff = payout_last - stake_last
+
+        bottom = min(payout_last, stake_last)
+        height = abs(diff)
+        if height > 0:
+            bar_color = "#4CAF50" if diff >= 0 else "orange"
+            ax.bar(
+                last_x,
+                height,
+                bottom=bottom,
+                width=0.6,
+                color=bar_color,
+                alpha=0.35,
+                edgecolor="none",
+                zorder=1,
+            )
+
+            y_mid = bottom + height / 2.0
+            ax.text(
+                last_x,
+                y_mid,
+                f"{diff:.0f}",
+                color="white",
+                ha="center",
+                va="center",
+                fontsize=10,
+                zorder=4,
+            )
+
     show_fig(fig)
 
 
