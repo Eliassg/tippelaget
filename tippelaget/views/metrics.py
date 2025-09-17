@@ -146,7 +146,7 @@ def render_luckiness(df: pd.DataFrame) -> None:
     style_ax_dark(ax, "Luckiness per player / Ball knowledge? (Actual ÷ EV)", ylabel="Luck Ratio (Ball knowledge?)")
     ax.axhline(1, linestyle="--", color="white", alpha=0.6)
     ax.set_yticklabels([f"{int(y*100)}%" for y in ax.get_yticks()], color="white")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
     st.markdown(
         """
@@ -209,6 +209,6 @@ def render_tippekassa_vs_baseline(df: pd.DataFrame, innskudd_df: pd.DataFrame) -
 
     style_ax_dark(ax, title="Tippekassa vs Baseline", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(loc="upper left", frameon=False, facecolor="#0E1117", edgecolor="none", labelcolor="white")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
