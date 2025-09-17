@@ -61,9 +61,12 @@ def render_cumulative_payout(df: pd.DataFrame) -> None:
             group["gameweek_num"], group["cumulative_payout"],
             marker="o", markersize=6, linewidth=2.2, alpha=0.85, label=player, color=color
         )
-        # Overlay player head as marker
+        # Overlay player head as marker, 2x size for Tobias and Mads
         img = load_player_head_image(player)
-        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=0.11)
+        base_zoom = 0.11
+        name_key = str(player).strip().lower()
+        zoom = base_zoom * 2.0 if name_key in ("tobias", "mads") else base_zoom
+        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=zoom)
         ax.text(
             group["gameweek_num"].iloc[-1] + 0.1,
             group["cumulative_payout"].iloc[-1],
@@ -130,9 +133,12 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
             group["gameweek_num"], group["cumulative_payout"],
             marker="o", linewidth=2, alpha=0.9, color=color, label=player,
         )
-        # Overlay player head as marker
+        # Overlay player head as marker, 2x size for Tobias and Mads
         img = load_player_head_image(player)
-        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=0.11)
+        base_zoom = 0.11
+        name_key = str(player).strip().lower()
+        zoom = base_zoom * 2.0 if name_key in ("tobias", "mads") else base_zoom
+        add_image_markers(ax, group["gameweek_num"], group["cumulative_payout"], img, zoom=zoom)
         # Label last point value for each player
         last_x = group["gameweek_num"].iloc[-1] + 0.1
         last_y = group["cumulative_payout"].iloc[-1]
