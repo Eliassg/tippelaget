@@ -1,18 +1,10 @@
-[theme]
-base = "dark"
-primaryColor = "#4CAF50"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1B1F2A"
-textColor = "#FFFFFF"
-
 [server]
 runOnSave = true
 
-# .streamlit/config.toml
 [theme]
-base="dark"
-primaryColor="#00C9A7"    # teal accent (change if you like)
-backgroundColor="#0E1117"
-secondaryBackgroundColor="#1A1D23"
-textColor="white"
-font="sans serif"
+base = "dark"
+primaryColor = "#00C9A7"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1A1D23"
+textColor = "white"
+font = "sans serif"

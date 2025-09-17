@@ -20,6 +20,21 @@ from tippelaget.views.assistants import render_prophet, render_king
 def main() -> None:
     st.title("📊 Tippelaget Season 2 ⚽ ")
 
+    # Lightweight mobile CSS: scrollable tabs and tighter paddings on small screens
+    st.markdown(
+        """
+        <style>
+        @media (max-width: 640px) {
+          .block-container { padding-top: 0.5rem; padding-bottom: 1.25rem; padding-left: 0.6rem; padding-right: 0.6rem; }
+          .stTabs [role="tablist"] { overflow-x: auto; white-space: nowrap; gap: 0.25rem; }
+          .stTabs [role="tab"] { flex: 0 0 auto; padding: 0.25rem 0.5rem; }
+          h1 { font-size: 1.35rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     configure_theme()
     df = get_prepared_bets()
 
