@@ -29,7 +29,7 @@ def style_ax_dark(ax, title: str, xlabel: str | None = None, ylabel: str | None 
         spine.set_visible(False)
 
 
-def new_fig(size: tuple[int, int] = (8, 5)):
+def new_fig(size: tuple[int, int] = (7, 4.2)):
     return plt.subplots(figsize=size, facecolor="#0E1117")
 
 
