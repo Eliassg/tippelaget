@@ -197,6 +197,12 @@ def render_team_total(df: pd.DataFrame) -> None:
         team_weekly["gameweek_num"], team_weekly["cumulative_stake"],
         linestyle="--", linewidth=2.5, color="orange", label="Baseline (stake)",
     )
+    # Show every gameweek tick on x-axis
+    try:
+        x_vals = sorted(team_weekly["gameweek_num"].unique().tolist())
+        ax.set_xticks(x_vals)
+    except Exception:
+        pass
     # Label last values for team payout and baseline stake
     if not team_weekly.empty:
         last_x_val = team_weekly["gameweek_num"].iloc[-1]
