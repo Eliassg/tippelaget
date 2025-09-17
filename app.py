@@ -23,82 +23,41 @@ def main() -> None:
     configure_theme()
     df = get_prepared_bets()
 
-    lite_mode = st.toggle("⚡ Lite mode (recommended on mobile)", value=False, help="Render only one section at a time to speed up on phones.")
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
+        "Total Payout", "Average Odds", "Cumulative Payout",
+        "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?", "Tippekassa vs Baseline",
+    ])
 
-    if lite_mode:
-        section = st.selectbox(
-            "Section",
-            [
-                "Total Payout",
-                "Average Odds",
-                "Cumulative Payout",
-                "Win Rate",
-                "Cumulative vs Baseline",
-                "Team Total",
-                "Luckiness / Ball knowledge?",
-                "Tippekassa vs Baseline",
-                "The Prophet",
-                "King Carl Gustaf's wisdom 🇸🇪",
-            ],
-        )
+    with tab1:
+        render_total_payout(df)
 
-        if section == "Total Payout":
-            render_total_payout(df)
-        elif section == "Average Odds":
-            render_average_odds(df)
-        elif section == "Cumulative Payout":
-            render_cumulative_payout(df)
-        elif section == "Win Rate":
-            render_win_rate(df)
-        elif section == "Cumulative vs Baseline":
-            render_cumulative_vs_baseline(df)
-        elif section == "Team Total":
-            render_team_total(df)
-        elif section == "Luckiness / Ball knowledge?":
-            render_luckiness(df)
-        elif section == "Tippekassa vs Baseline":
-            innskudd_df = create_monthly_innskudd_df()
-            render_tippekassa_vs_baseline(df, innskudd_df)
-        elif section == "The Prophet":
-            render_prophet(df)
-        elif section == "King Carl Gustaf's wisdom 🇸🇪":
-            render_king(df)
-    else:
-        tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
-            "Total Payout", "Average Odds", "Cumulative Payout",
-            "Win Rate", "Cumulative vs Baseline", "Team Total", "Luckiness / Ball knowledge?", "Tippekassa vs Baseline",
-        ])
+    with tab2:
+        render_average_odds(df)
 
-        with tab1:
-            render_total_payout(df)
+    with tab3:
+        render_cumulative_payout(df)
 
-        with tab2:
-            render_average_odds(df)
+    with tab4:
+        render_win_rate(df)
 
-        with tab3:
-            render_cumulative_payout(df)
+    with tab5:
+        render_cumulative_vs_baseline(df)
 
-        with tab4:
-            render_win_rate(df)
+    with tab6:
+        render_team_total(df)
 
-        with tab5:
-            render_cumulative_vs_baseline(df)
+    with tab7:
+        render_luckiness(df)
 
-        with tab6:
-            render_team_total(df)
+    with tab8:
+        innskudd_df = create_monthly_innskudd_df()
+        render_tippekassa_vs_baseline(df, innskudd_df)
 
-        with tab7:
-            render_luckiness(df)
-
-        with tab8:
-            innskudd_df = create_monthly_innskudd_df()
-            render_tippekassa_vs_baseline(df, innskudd_df)
-
-        tab9, tab10 = st.tabs(["The Prophet", "King Carl Gustaf's wisdom 🇸🇪"])
-        with tab9:
-            render_prophet(df)
-        with tab10:
-            render_king(df)
+    tab9, tab10 = st.tabs(["The Prophet", "King Carl Gustaf's wisdom 🇸🇪"])
+    with tab9:
+        render_prophet(df)
+    with tab10:
+        render_king(df)
 
     #button to execute workflow to update the bets view
     if st.button("Populate data model"):
