@@ -62,7 +62,7 @@ def main() -> None:
     if st.button("Populate data model"):
         from tippelaget.core.data import execute_workflow
         with st.spinner("Updating... This may take a while."):
-            res = execute_workflow("wf_tippelaget_workflow")
+            res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
             st.success(f"Workflow started with job id: {res.id}. It may take a few minutes to complete.")
             st.info("Please refresh the page after a while to see updated data." + f"{res}")
 
