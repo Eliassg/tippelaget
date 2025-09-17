@@ -80,8 +80,8 @@ def main() -> None:
         from tippelaget.core.data import execute_workflow, check_workflow_status
         with st.spinner("Updating... This may take a while."):
             res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
-            st.success(f"Workflow started with job id: {res.id}. It may take a few minutes to complete.")
-            st.info("Please refresh the page after a while to see updated data." + f"{res}")
+            st.success(f"Workflow started with job id: {res.id}. It may take a few seconds to complete.")
+            st.info("Please refresh the page after completion to see updated data." + f"{res}")
             # check status every 10 seconds until complete
             import time
             status = "running"
