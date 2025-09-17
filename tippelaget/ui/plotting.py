@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import streamlit as st
 
 
 def configure_theme() -> None:
@@ -9,8 +10,8 @@ def configure_theme() -> None:
     plt.style.use("dark_background")
     sns.set_theme(style="dark")
     sns.set_palette("Spectral")
-    # Reduce default DPI to lighten payload on mobile
-    plt.rcParams["figure.dpi"] = 96
+    # Reduce default DPI further to lighten payload on mobile and desktop
+    plt.rcParams["figure.dpi"] = 84
 
 
 def style_ax_dark(ax, title: str, xlabel: str | None = None, ylabel: str | None = None) -> None:
@@ -31,4 +32,14 @@ def style_ax_dark(ax, title: str, xlabel: str | None = None, ylabel: str | None 
 def new_fig(size: tuple[int, int] = (8, 5)):
     return plt.subplots(figsize=size, facecolor="#0E1117")
 
+
+
+def show_fig(fig) -> None:
+    """Display figure centered in a narrower column to avoid full-width stretching on desktop.
+
+    On mobile, columns stack so the figure remains readable while keeping image payload reasonable.
+    """
+    left, center, right = st.columns([1, 4, 1])
+    with center:
+        st.pyplot(fig, use_container_width=True)
 

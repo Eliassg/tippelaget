@@ -4,7 +4,7 @@ import pandas as pd
 import seaborn as sns
 import streamlit as st
 
-from ..ui.plotting import new_fig, style_ax_dark
+from ..ui.plotting import new_fig, style_ax_dark, show_fig
 
 
 def render_total_payout(df: pd.DataFrame) -> None:
@@ -12,7 +12,7 @@ def render_total_payout(df: pd.DataFrame) -> None:
     fig, ax = new_fig((8, 5))
     sns.barplot(data=payouts, x="player", y="payout", ax=ax, palette="coolwarm", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Total payout per player", ylabel="Total NOK")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_average_odds(df: pd.DataFrame) -> None:
@@ -20,7 +20,7 @@ def render_average_odds(df: pd.DataFrame) -> None:
     fig, ax = new_fig((8, 5))
     sns.barplot(data=odds, x="player", y="odds", ax=ax, palette="mako", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Average odds per player", ylabel="Mean odds")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_cumulative_payout(df: pd.DataFrame) -> None:
@@ -51,7 +51,7 @@ def render_cumulative_payout(df: pd.DataFrame) -> None:
         edgecolor="none",
         labelcolor="white",
     )
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_win_rate(df: pd.DataFrame) -> None:
@@ -66,7 +66,7 @@ def render_win_rate(df: pd.DataFrame) -> None:
     sns.barplot(data=winrate, x="player", y="won_week", ax=ax, palette="flare", edgecolor=None, linewidth=0, alpha=0.9)
     style_ax_dark(ax, "Win rate per player (by gameweek)", ylabel="Win rate (%)")
     ax.set_yticklabels([f"{int(x*100)}%" for x in ax.get_yticks()], color="white")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
@@ -106,7 +106,7 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
         fancybox=True,
         framealpha=0.6,
     )
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_team_total(df: pd.DataFrame) -> None:
@@ -128,7 +128,7 @@ def render_team_total(df: pd.DataFrame) -> None:
     )
     style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(title="Metric", facecolor="#0E1117", edgecolor="none", labelcolor="white")
-    st.pyplot(fig, use_container_width=True)
+    show_fig(fig)
 
 
 def render_luckiness(df: pd.DataFrame) -> None:
