@@ -88,9 +88,29 @@ def render_cumulative_vs_baseline(df: pd.DataFrame) -> None:
             group["gameweek_num"], group["cumulative_payout"],
             marker="o", linewidth=2, alpha=0.9, color=color, label=player,
         )
+        # Label last point value for each player
+        last_x = group["gameweek_num"].iloc[-1] + 0.1
+        last_y = group["cumulative_payout"].iloc[-1]
+        ax.text(
+            last_x,
+            last_y,
+            f"{last_y:.0f}",
+            fontsize=9,
+            color=color,
+        )
     ax.plot(
         baseline["gameweek_num"], baseline["per_player_stake"],
         linestyle="--", linewidth=2.2, alpha=0.9, color="white", label="Baseline (stake/share)",
+    )
+    # Label last baseline value
+    base_last_x = baseline["gameweek_num"].iloc[-1] + 0.1
+    base_last_y = baseline["per_player_stake"].iloc[-1]
+    ax.text(
+        base_last_x,
+        base_last_y,
+        f"{base_last_y:.0f}",
+        fontsize=9,
+        color="white",
     )
 
     style_ax_dark(ax, "Cumulative payout vs baseline (equal stake share)", xlabel="Gameweek", ylabel="Cumulative NOK")
@@ -126,6 +146,13 @@ def render_team_total(df: pd.DataFrame) -> None:
         team_weekly["gameweek_num"], team_weekly["cumulative_stake"],
         linestyle="--", linewidth=2.5, color="orange", label="Baseline (stake)",
     )
+    # Label last values for team payout and baseline stake
+    if not team_weekly.empty:
+        last_x_val = team_weekly["gameweek_num"].iloc[-1]
+        last_payout = team_weekly["cumulative_payout"].iloc[-1]
+        last_stake = team_weekly["cumulative_stake"].iloc[-1]
+        ax.text(last_x_val + 0.1, last_payout, f"{last_payout:.0f}", fontsize=9, color="lime")
+        ax.text(last_x_val + 0.1, last_stake, f"{last_stake:.0f}", fontsize=9, color="orange")
     style_ax_dark(ax, "Team cumulative payout vs stake", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(title="Metric", facecolor="#0E1117", edgecolor="none", labelcolor="white")
 
@@ -254,6 +281,13 @@ def render_tippekassa_vs_baseline(df: pd.DataFrame, innskudd_df: pd.DataFrame) -
 
     style_ax_dark(ax, title="Tippekassa vs Baseline", xlabel="Gameweek", ylabel="Cumulative NOK")
     ax.legend(loc="upper left", frameon=False, facecolor="#0E1117", edgecolor="none", labelcolor="white")
+    # Label last values for the two series
+    if not weekly.empty:
+        last_x_val = weekly["gameweek_num"].iloc[-1]
+        last_payout = weekly["cum_payout_plus_innskudd"].iloc[-1]
+        last_stake = weekly["cum_stake_plus_innskudd"].iloc[-1]
+        ax.text(last_x_val + 0.1, last_payout, f"{last_payout:.0f}", fontsize=9, color="#4CAF50")
+        ax.text(last_x_val + 0.1, last_stake, f"{last_stake:.0f}", fontsize=9, color="white")
     show_fig(fig)
 
 
