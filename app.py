@@ -78,12 +78,13 @@ def main() -> None:
     #text that displays the last time the workflow was run
     from tippelaget.core.data import check_last_workflow_runtime
     last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
-    #convert from int to datetime
+    # Convert from int (Unix timestamp) to human-readable datetime string
     if last_run:
         try:
-            last_run_dt = pd.to_datetime(last_run, unit='s')
-            st.markdown(f"**Last data model update:** {last_run_dt}")
-        except (ValueError, OverflowError, pd.errors.OutOfBoundsDatetime):
+            last_run_dt = datetime.datetime.fromtimestamp(int(last_run))
+            last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
+            st.markdown(f"**Last data model update:** {last_run_str}")
+        except (ValueError, OverflowError, OSError):
             st.markdown("**Last data model update:** Invalid timestamp returned.")
     else:   
         st.markdown("**Last data model update:** No previous runs found.")
@@ -97,6 +98,7 @@ def main() -> None:
             st.info("Please refresh the page after completion to see updated data." + f"{res}")
             # check status every 10 seconds until complete
             import time
+            import datetime
             status = "running"
             while status == "running":
                 time.sleep(10)
