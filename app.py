@@ -75,6 +75,14 @@ def main() -> None:
     with tab10:
         render_king(df)
 
+    #text that displays the last time the workflow was run
+    from tippelaget.core.data import check_last_workflow_runtime
+    last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
+    if last_run:
+        st.markdown(f"**Last data model update:** {last_run}")
+    else:   
+        st.markdown("**Last data model update:** No previous runs found.")
+
     #button to execute workflow to update the bets view
     if st.button("Populate data model"):
         from tippelaget.core.data import execute_workflow, check_workflow_status

@@ -85,3 +85,10 @@ def check_workflow_status(execution_id: int) -> str:
     client = get_client()
     res = client.workflows.executions.retrieve_detailed(execution_id)
     return res.status
+
+def check_last_workflow_runtime(wf_external_id: str, version="1") -> str | None:
+    client = get_client()
+    executions = client.workflows.executions.retrieve_detailed(workflow_external_id=wf_external_id, version=version)
+    if executions:
+        return str(executions[0].created_time)
+    return None
