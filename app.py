@@ -75,48 +75,45 @@ def main() -> None:
     with tab10:
         render_king(df)
 
-    #text that displays the last time the workflow was run
+    # Display and update the last workflow run time in a single text box
     from tippelaget.core.data import check_last_workflow_runtime
     import datetime
-    last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
-    # Convert from Unix timestamp in milliseconds to human-readable datetime string
-    if last_run:
-        try:
-            last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
-            last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
-            st.markdown(f"**Last data model update:** {last_run_str}")
-        except (ValueError, OverflowError, OSError):
-            st.markdown("**Last data model update:** Invalid timestamp returned.", {last_run})
-    else:
-        st.markdown("**Last data model update:** No previous runs found.")
 
-    #button to execute workflow to update the bets view
+    # Use a Streamlit placeholder for the last run text
+    last_run_placeholder = st.empty()
+
+    def update_last_run_text():
+        last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
+        if last_run:
+            try:
+                last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
+                last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
+                last_run_placeholder.markdown(f"**Last data model update:** {last_run_str}")
+            except (ValueError, OverflowError, OSError):
+                last_run_placeholder.markdown("**Last data model update:** Invalid timestamp returned.")
+        else:
+            last_run_placeholder.markdown("**Last data model update:** No previous runs found.")
+
+    update_last_run_text()
+
+    # Button to execute workflow to update the bets view
     if st.button("Populate data model"):
         from tippelaget.core.data import execute_workflow, check_workflow_status
+        import time
+
         with st.spinner("Updating... This may take a while."):
             res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
             st.success(f"Workflow started with job id: {res.id}. It may take a few seconds to complete.")
             st.info("Please refresh the page after completion to see updated data." + f"{res}")
             # check status every 10 seconds until complete
-            import time
-            import datetime
             status = "running"
             while status == "running":
                 time.sleep(10)
                 status = check_workflow_status(res.id)
                 st.info(f"Workflow status: {status}")
             st.success("Workflow completed!")
-            #update last run time
-            last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
-            if last_run:
-                try:
-                    last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
-                    last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
-                    st.markdown(f"**Last data model update:** {last_run_str}")
-                except (ValueError, OverflowError, OSError):
-                    st.markdown("**Last data model update:** Invalid timestamp returned.", {last_run})
-            else:
-                st.markdown("**Last data model update:** No previous runs found.")
+            # Update last run time in the same text box
+            update_last_run_text()
 
 if __name__ == "__main__":
     main()
