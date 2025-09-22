@@ -78,7 +78,9 @@ def main() -> None:
     #text that displays the last time the workflow was run
     from tippelaget.core.data import check_last_workflow_runtime
     last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
+    #convert from int to datetime
     if last_run:
+        last_run = pd.to_datetime(last_run, unit='s')
         st.markdown(f"**Last data model update:** {last_run}")
     else:   
         st.markdown("**Last data model update:** No previous runs found.")
