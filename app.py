@@ -79,7 +79,16 @@ def main() -> None:
     from tippelaget.core.data import check_last_workflow_runtime
     import datetime
     last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
-    st.markdown("**Last data model update:**", int(last_run))
+    # Convert from Unix timestamp in milliseconds to human-readable datetime string
+    if last_run:
+        try:
+            last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
+            last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
+            st.markdown(f"**Last data model update:** {last_run_str}")
+        except (ValueError, OverflowError, OSError):
+            st.markdown("**Last data model update:** Invalid timestamp returned.", {last_run})
+    else:
+        st.markdown("**Last data model update:** No previous runs found.")
 
     #button to execute workflow to update the bets view
     if st.button("Populate data model"):
