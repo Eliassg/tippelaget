@@ -77,6 +77,7 @@ def main() -> None:
 
     #text that displays the last time the workflow was run
     from tippelaget.core.data import check_last_workflow_runtime
+    import datetime
     last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
     # Convert from int (Unix timestamp) to human-readable datetime string
     if last_run:
