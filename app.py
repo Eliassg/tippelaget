@@ -106,6 +106,17 @@ def main() -> None:
                 status = check_workflow_status(res.id)
                 st.info(f"Workflow status: {status}")
             st.success("Workflow completed!")
+            #update last run time
+            last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
+            if last_run:
+                try:
+                    last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
+                    last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
+                    st.markdown(f"**Last data model update:** {last_run_str}")
+                except (ValueError, OverflowError, OSError):
+                    st.markdown("**Last data model update:** Invalid timestamp returned.", {last_run})
+            else:
+                st.markdown("**Last data model update:** No previous runs found.")
 
 if __name__ == "__main__":
     main()
