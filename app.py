@@ -86,9 +86,10 @@ def main() -> None:
         last_run = check_last_workflow_runtime(wf_external_id="wf_tippelaget_workflow", version="1")
         if last_run:
             try:
-                last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000)
+                # Convert to UTC+2
+                last_run_dt = datetime.datetime.fromtimestamp(int(last_run) / 1000) + datetime.timedelta(hours=2)
                 last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
-                last_run_placeholder.markdown(f"**Last data model update:** {last_run_str}")
+                last_run_placeholder.markdown(f"**Last data model update (UTC+2):** {last_run_str}")
             except (ValueError, OverflowError, OSError):
                 last_run_placeholder.markdown("**Last data model update:** Invalid timestamp returned.")
         else:
