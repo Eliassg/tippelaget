@@ -86,7 +86,7 @@ def main() -> None:
             last_run_str = last_run_dt.strftime("%Y-%m-%d %H:%M:%S")
             st.markdown(f"**Last data model update:** {last_run_str}")
         except (ValueError, OverflowError, OSError):
-            st.markdown("**Last data model update:** Invalid timestamp returned.")
+            st.markdown("**Last data model update:** Invalid timestamp returned. {last_run}")
     else:   
         st.markdown("**Last data model update:** No previous runs found.")
 
