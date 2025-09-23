@@ -2,7 +2,7 @@ import streamlit as st
 st.set_page_config(page_title="Tippelaget", page_icon="⚽", layout="wide", initial_sidebar_state="collapsed")
 import pandas as pd
 
-from tippelaget.core.data import get_prepared_bets, create_monthly_innskudd_df
+from tippelaget.core.data import get_prepared_bets, create_monthly_innskudd_df, get_todays_events
 from tippelaget.ui.plotting import configure_theme
 from tippelaget.views.metrics import (
     render_total_payout,
@@ -38,6 +38,7 @@ def main() -> None:
 
     configure_theme()
     df = get_prepared_bets()
+    df_events = get_todays_events()
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "Total Payout", "Average Odds", "Cumulative Payout",
@@ -73,7 +74,7 @@ def main() -> None:
     with tab9:
         render_prophet(df)
     with tab10:
-        render_king(df)
+        render_king(df, df_events)
 
     # Display and update the last workflow run time in a single text box
     from tippelaget.core.data import check_last_workflow_runtime
