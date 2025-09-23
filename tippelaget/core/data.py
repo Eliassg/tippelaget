@@ -128,6 +128,7 @@ def get_prepared_bets() -> pd.DataFrame:
     df = fetch_bet_view()
     return prepare_bets_df(df)
 
+@st.cache_data(ttl=0)
 def get_todays_events() -> pd.DataFrame:
     df = fetch_event_view()
     #select relevant columns: "eventName, "H", "A", "D"
