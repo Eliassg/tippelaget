@@ -81,9 +81,10 @@ def fetch_event_view(
     try:
         res = client.data_modeling.instances.query(query=query)
         print(res["Event"])   
+        df = res.get_nodes("Event").to_pandas(expand_properties=True)
     except CogniteAPIError as e:
         print(e)
-    df = res.get_nodes("Event").to_pandas(expand_properties=True)
+        return pd.DataFrame()
     return df
 
 
