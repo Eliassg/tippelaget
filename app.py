@@ -99,8 +99,8 @@ def main() -> None:
 
     update_last_run_text()
 
-    # Buttons row: Populate data model and Show today's events
-    col_populate, col_events = st.columns([1, 1])
+    # Buttons row: Populate data model and Show today's events (placed just to the right)
+    col_populate, _spacer, col_events, _filler = st.columns([0.25, 0.02, 0.25, 0.48])
     with col_populate:
         if st.button("Populate data model", key="populate_model"):
             from tippelaget.core.data import execute_workflow, check_workflow_status
