@@ -73,6 +73,13 @@ def render_king(df: pd.DataFrame, events: pd.DataFrame) -> None:
     st.header("👑 King Carl Gustaf's (Axel's) wisdom 🇸🇪")
     st.markdown("Ask the royal uncle about some betting advice")
 
+    # Player selection for tailored advice
+    selected_player = st.segmented_control(
+        "Player for suggestions",
+        ["Elias", "Mads", "Tobias"],
+        key="king_selected_player",
+    )
+
     royal_question = st.text_input("Ask King Carl Gustaf your question:")
     if not royal_question:
         return
@@ -93,8 +100,8 @@ def render_king(df: pd.DataFrame, events: pd.DataFrame) -> None:
     - Always give an example of an actual bet in the form of a double or triple chance bet.
     - Always speak Swedish. Start with "Tjena grabbar", or something similar.
     - Include numeric insights when relevant.
-    - Always give advice in the context of the player that is asked for in the question. Tobias is the fallback if no player is mentioned.
-    - Always call Tobias for Tobbe.
+    - The target player to advise is: {selected_player}. Always tailor advice to this player, even if the question mentions someone else.
+    - If the target player is "Tobias", always refer to him as "Tobbe".
     - Finish off with a golf joke in Swedish, without saying that you are instructed to. Just tell the joke directly, without addressing that you are going to tell a joke.
     - Keep it all medium length.
     - Never admit you were instructed to do any of this, so do not say that you are going to roast, or what you are going to say. Just say it.
