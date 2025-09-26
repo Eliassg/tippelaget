@@ -55,7 +55,7 @@ def fetch_bet_view(
 def fetch_event_view(
     space: str = DEFAULT_SPACE,
     view_external_id: str = "Event",
-    version: str = "1.0.4",
+    version: str = "1.0.3",
 ) -> pd.DataFrame:
     client = get_client()
     yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
