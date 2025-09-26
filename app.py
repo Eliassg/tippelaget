@@ -99,24 +99,30 @@ def main() -> None:
 
     update_last_run_text()
 
-    # Button to execute workflow to update the bets view
-    if st.button("Populate data model"):
-        from tippelaget.core.data import execute_workflow, check_workflow_status
-        import time
+    # Buttons row: Populate data model and Show today's events
+    col_populate, col_events = st.columns([1, 1])
+    with col_populate:
+        if st.button("Populate data model", key="populate_model"):
+            from tippelaget.core.data import execute_workflow, check_workflow_status
+            import time
 
-        with st.spinner("Updating... This may take a while."):
-            res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
-            st.success(f"Workflow started with job id: {res.id}. It may take a few seconds to complete.")
-            st.info("Please refresh the page after completion to see updated data." + f"{res}")
-            # check status every 10 seconds until complete
-            status = "running"
-            while status == "running":
-                time.sleep(10)
-                status = check_workflow_status(res.id)
-                st.info(f"Workflow status: {status}")
-            st.success("Workflow completed!")
-            # Update last run time in the same text box
-            update_last_run_text()
+            with st.spinner("Updating... This may take a while."):
+                res = execute_workflow(wf_external_id="wf_tippelaget_workflow", version="1")
+                st.success(f"Workflow started with job id: {res.id}. It may take a few seconds to complete.")
+                st.info("Please refresh the page after completion to see updated data." + f"{res}")
+                # check status every 10 seconds until complete
+                status = "running"
+                while status == "running":
+                    time.sleep(10)
+                    status = check_workflow_status(res.id)
+                    st.info(f"Workflow status: {status}")
+                st.success("Workflow completed!")
+                # Update last run time in the same text box
+                update_last_run_text()
+    with col_events:
+        if st.button("Show today's events", key="open_events_dialog"):
+            st.session_state["show_events"] = True
+            st.rerun()
 
     # Ensure toggle state exists
     if "show_events" not in st.session_state:
@@ -132,14 +138,6 @@ def main() -> None:
             st.dataframe(events_df, use_container_width=True)
         if st.button("Close"):
             st.session_state["show_events"] = False
-            st.rerun()
-
-    # Bottom button to toggle dialog
-    st.divider()
-    _, center_col, _ = st.columns([1, 2, 1])
-    with center_col:
-        if st.button("Show today's events", key="open_events_dialog"):
-            st.session_state["show_events"] = True
             st.rerun()
 
     if st.session_state.get("show_events"):
