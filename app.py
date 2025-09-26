@@ -38,7 +38,6 @@ def main() -> None:
 
     configure_theme()
     df = get_prepared_bets()
-    df_events = get_todays_events()
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "Total Payout", "Average Odds", "Cumulative Payout",
@@ -74,6 +73,8 @@ def main() -> None:
     with tab9:
         render_prophet(df)
     with tab10:
+        # Keep existing behavior for the King tab which relies on today's events
+        df_events = get_todays_events()
         render_king(df, df_events)
 
     # Display and update the last workflow run time in a single text box
@@ -116,6 +117,33 @@ def main() -> None:
             st.success("Workflow completed!")
             # Update last run time in the same text box
             update_last_run_text()
+
+    # Ensure toggle state exists
+    if "show_events" not in st.session_state:
+        st.session_state["show_events"] = False
+
+    # Dialog to lazily fetch and display today's events
+    @st.dialog("Today's events")
+    def show_events_dialog() -> None:
+        events_df = get_todays_events()
+        if events_df.empty:
+            st.info("No events found for today.")
+        else:
+            st.dataframe(events_df, use_container_width=True)
+        if st.button("Close"):
+            st.session_state["show_events"] = False
+            st.rerun()
+
+    # Bottom button to toggle dialog
+    st.divider()
+    _, center_col, _ = st.columns([1, 2, 1])
+    with center_col:
+        if st.button("Show today's events", key="open_events_dialog"):
+            st.session_state["show_events"] = True
+            st.rerun()
+
+    if st.session_state.get("show_events"):
+        show_events_dialog()
 
 if __name__ == "__main__":
     main()
