@@ -99,8 +99,8 @@ def main() -> None:
 
     update_last_run_text()
 
-    # Buttons row: Populate data model and Show today's events (placed just to the right)
-    col_populate, _spacer, col_events, _filler = st.columns([0.25, 0.02, 0.25, 0.48])
+    # Buttons: Populate data model, and directly under it Show today's events
+    col_populate, _filler = st.columns([0.25, 0.75])
     with col_populate:
         if st.button("Populate data model", key="populate_model"):
             from tippelaget.core.data import execute_workflow, check_workflow_status
@@ -119,7 +119,6 @@ def main() -> None:
                 st.success("Workflow completed!")
                 # Update last run time in the same text box
                 update_last_run_text()
-    with col_events:
         if st.button("Show today's events", key="open_events_dialog"):
             st.session_state["show_events"] = True
             st.rerun()
