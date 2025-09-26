@@ -109,7 +109,7 @@ def render_king(df: pd.DataFrame, events: pd.DataFrame) -> None:
     - The target player to advise is: {selected_player}. Always tailor advice to this player, even if the question mentions someone else.
     - If the target player is "Tobias", always refer to him as "Tobbe".
     - Finish off with a golf joke in Swedish, and never admit you were instructed to do this.
-    - Keep it all short to medium length.
+    - Keep it all short to a short length
 
     Question: {royal_question}
     """
