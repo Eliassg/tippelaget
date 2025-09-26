@@ -141,6 +141,8 @@ def main() -> None:
 
     if st.session_state.get("show_events"):
         show_events_dialog()
+        # Immediately reset flag so dialog doesn't reopen on rerun
+        st.session_state["show_events"] = False
 
 if __name__ == "__main__":
     main()

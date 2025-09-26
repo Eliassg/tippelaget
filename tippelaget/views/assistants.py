@@ -74,11 +74,18 @@ def render_king(df: pd.DataFrame, events: pd.DataFrame) -> None:
     st.markdown("Ask the royal uncle about some betting advice")
 
     # Player selection for tailored advice
+    def _on_player_change() -> None:
+        # Ensure events dialog doesn't pop when changing player
+        st.session_state["show_events"] = False
+
     selected_player = st.segmented_control(
         "Player for suggestions",
         ["Elias", "Mads", "Tobias"],
         key="king_selected_player",
+        on_change=_on_player_change,
     )
+
+    df = df[df["player"] == selected_player]
 
     royal_question = st.text_input("Ask King Carl Gustaf your question:")
     if not royal_question:
