@@ -1,5 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchEventsToday } from '../api'
+import { formatOther } from '../lib/formatNumbers'
+
+function formatEventCell(column: string, v: unknown): string {
+  if (v === null || v === undefined) return '—'
+  if (typeof v === 'string' && v.trim() === '') return '—'
+  if (column === 'eventName') return String(v)
+  const n = typeof v === 'number' ? v : Number(v)
+  if (Number.isFinite(n)) return formatOther(n)
+  return String(v)
+}
 
 export function EventsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data, isLoading, isError, error } = useQuery({
@@ -60,9 +70,9 @@ export function EventsModal({ open, onClose }: { open: boolean; onClose: () => v
                 <tbody>
                   {rows.map((row, i) => (
                     <tr key={i} className="border-b border-[var(--color-border)]/60">
-                      {Object.values(row).map((v, j) => (
-                        <td key={j} className="px-2 py-2 text-white/90">
-                          {v === null || v === undefined ? '—' : String(v)}
+                      {Object.entries(row).map(([col, v]) => (
+                        <td key={col} className="px-2 py-2 text-white/90">
+                          {formatEventCell(col, v)}
                         </td>
                       ))}
                     </tr>

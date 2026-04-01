@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import { fetchDashboard } from '../api'
 import { ChartFrame } from '../components/ChartFrame'
+import { formatNok, formatOther, formatPercent100 } from '../lib/formatNumbers'
 import { mergeBaseline, pivotPlayerLines, playerColorMap } from '../lib/chartUtils'
 
 const tipStyle = {
@@ -24,6 +25,48 @@ const tipStyle = {
   borderRadius: 8,
   color: '#e8eaef',
 }
+
+function num(v: string | number | undefined, fallback = 0): number {
+  if (v === undefined) return fallback
+  return typeof v === 'number' ? v : Number(v) || fallback
+}
+
+function barLabelNok(props: { x?: string | number; y?: string | number; width?: string | number; value?: unknown }) {
+  const x = num(props.x)
+  const y = num(props.y)
+  const width = num(props.width)
+  return (
+    <text x={x + width / 2} y={y} dy={-4} fill="#e8eaef" fontSize={11} textAnchor="middle">
+      {formatNok(Number(props.value))}
+    </text>
+  )
+}
+
+function barLabelOther(props: { x?: string | number; y?: string | number; width?: string | number; value?: unknown }) {
+  const x = num(props.x)
+  const y = num(props.y)
+  const width = num(props.width)
+  return (
+    <text x={x + width / 2} y={y} dy={-4} fill="#e8eaef" fontSize={11} textAnchor="middle">
+      {formatOther(Number(props.value))}
+    </text>
+  )
+}
+
+function barLabelPercent(props: { x?: string | number; y?: string | number; width?: string | number; value?: unknown }) {
+  const x = num(props.x)
+  const y = num(props.y)
+  const width = num(props.width)
+  return (
+    <text x={x + width / 2} y={y} dy={-4} fill="#e8eaef" fontSize={11} textAnchor="middle">
+      {formatPercent100(Number(props.value))}
+    </text>
+  )
+}
+
+const tooltipNok = (value: unknown) => [formatNok(Number(value)), 'NOK'] as [string, string]
+const lineTooltipNok = (value: unknown, name: unknown) =>
+  [formatNok(Number(value)), String(name)] as [string, string]
 
 export function MetricsPage() {
   const { slug } = useParams()
@@ -93,10 +136,10 @@ function TotalPayout({ data }: { data: { player: string; payout: number }[] }) {
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="player" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={tooltipNok} />
           <Bar dataKey="payout" fill="#5eead4" radius={[6, 6, 0, 0]} name="NOK">
-            <LabelList dataKey="payout" position="top" fill="#e8eaef" fontSize={11} />
+            <LabelList dataKey="payout" position="top" content={barLabelNok} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -111,10 +154,10 @@ function AverageOdds({ data }: { data: { player: string; odds: number }[] }) {
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="player" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatOther(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={(v) => [formatOther(Number(v)), 'Odds'] as [string, string]} />
           <Bar dataKey="odds" fill="#a78bfa" radius={[6, 6, 0, 0]}>
-            <LabelList dataKey="odds" position="top" fill="#e8eaef" fontSize={11} />
+            <LabelList dataKey="odds" position="top" content={barLabelOther} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -132,8 +175,8 @@ function CumulativePayout({ data }: { data: import('../types').CumulativePlayerS
         <LineChart data={merged} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} label={{ value: 'Gameweek', fill: '#8b92a8', position: 'bottom', offset: 0 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
           <Legend wrapperStyle={{ color: '#8b92a8' }} />
           {players.map((p) => (
             <Line key={p} type="monotone" dataKey={p} stroke={colors.get(p)} strokeWidth={2} dot={{ r: 4 }} />
@@ -152,13 +195,17 @@ function WinRate({ data }: { data: { player: string; win_rate: number }[] }) {
         <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="player" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+          <YAxis
+            tick={{ fill: '#8b92a8', fontSize: 12 }}
+            domain={[0, 100]}
+            tickFormatter={(v) => formatPercent100(Number(v))}
+          />
           <Tooltip
             contentStyle={tipStyle}
-            formatter={(value) => [`${Number(value).toFixed(0)}%`, 'Win rate']}
+            formatter={(value) => [formatPercent100(Number(value)), 'Win rate'] as [string, string]}
           />
           <Bar dataKey="win_pct" fill="#fb923c" radius={[6, 6, 0, 0]} name="Win rate">
-            <LabelList dataKey="win_pct" position="top" fill="#e8eaef" fontSize={11} />
+            <LabelList dataKey="win_pct" position="top" content={barLabelPercent} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
@@ -180,8 +227,8 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
         <LineChart data={merged} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
           <Legend wrapperStyle={{ color: '#8b92a8' }} />
           {players.map((p) => (
             <Line key={p} type="monotone" dataKey={p} stroke={colors.get(p)} strokeWidth={2} dot={{ r: 3 }} />
@@ -211,14 +258,14 @@ function TeamTotal({ data }: { data: import('../types').TeamTotal }) {
   return (
     <ChartFrame
       title="Team cumulative payout vs stake"
-      subtitle={data.diff != null ? `Latest gap (payout − stake): ${data.diff.toFixed(0)} NOK` : undefined}
+      subtitle={data.diff != null ? `Latest gap (payout − stake): ${formatNok(data.diff)} NOK` : undefined}
     >
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data.series} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
           <Legend wrapperStyle={{ color: '#8b92a8' }} />
           <Line type="monotone" dataKey="cumulative_payout" name="Team payout" stroke="#4ade80" strokeWidth={2.5} dot />
           <Line
@@ -245,14 +292,14 @@ function Luckiness({ data }: { data: import('../types').LuckinessPayload }) {
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
             <XAxis dataKey="player" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-            <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => `${v}%`} />
+            <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatPercent100(Number(v))} />
             <Tooltip
               contentStyle={tipStyle}
-              formatter={(value) => [`${Number(value).toFixed(0)}%`, 'Luck ratio']}
+              formatter={(value) => [formatPercent100(Number(value)), 'Luck ratio'] as [string, string]}
             />
             <ReferenceLine y={100} stroke="#94a3b8" strokeDasharray="4 4" />
             <Bar dataKey="luck_pct" fill="#5eead4" radius={[6, 6, 0, 0]}>
-              <LabelList dataKey="luck_pct" position="top" fill="#e8eaef" fontSize={11} />
+              <LabelList dataKey="luck_pct" position="top" content={barLabelPercent} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -267,10 +314,10 @@ function Luckiness({ data }: { data: import('../types').LuckinessPayload }) {
         {data.luckiest && data.unluckiest ? (
           <ul className="mt-4 list-inside list-disc space-y-1 text-white/90">
             <li>
-              Luckiest: <strong>{data.luckiest.player}</strong> ({data.luckiest.luck_ratio.toFixed(2)})
+              Luckiest: <strong>{data.luckiest.player}</strong> ({formatOther(data.luckiest.luck_ratio)})
             </li>
             <li>
-              Unluckiest: <strong>{data.unluckiest.player}</strong> ({data.unluckiest.luck_ratio.toFixed(2)})
+              Unluckiest: <strong>{data.unluckiest.player}</strong> ({formatOther(data.unluckiest.luck_ratio)})
             </li>
           </ul>
         ) : null}
@@ -293,8 +340,8 @@ function Tippekassa({ data }: { data: import('../types').TippekassaPayload }) {
         <LineChart data={data.series} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} />
-          <Tooltip contentStyle={tipStyle} />
+          <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
+          <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
           <Legend wrapperStyle={{ color: '#8b92a8' }} />
           <Line type="monotone" dataKey="cum_payout_plus_innskudd" name="Winnings + innskudd" stroke="#4ade80" strokeWidth={2.5} dot />
           <Line
