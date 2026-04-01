@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { playerImageUrl } from '../lib/apiBase'
 
-const LINE_DOT_PX = 22
+const LINE_DOT_PX = 33
 
 type DotProps = {
   cx?: number

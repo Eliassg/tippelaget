@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useXAxisScale, useYAxisScale } from 'recharts'
+import { DefaultZIndexes, useXAxisScale, useYAxisScale, ZIndexLayer } from 'recharts'
 import { PlayerLineDot } from './PlayerLineDot'
 
 /** Matches Recharts `animationEasing="ease-out"` (cubic-bezier 0.42, 0, 0.58, 1). */
@@ -143,16 +143,18 @@ export function AnimatedPlayerLineEndDots({
   if (!xScale || !yScale) return null
 
   return (
-    <g className="animated-player-line-end-dots" pointerEvents="none">
-      {players.map((p) => {
-        const pts = polylines.get(p) ?? []
-        if (pts.length === 0) return null
-        const total = polylineLength(pts)
-        const dist = progress * total
-        const { x, y } = pointAtDistance(pts, dist)
-        const stroke = playerColors.get(p)
-        return <PlayerLineDot key={p} cx={x} cy={y} player={p} stroke={stroke} />
-      })}
-    </g>
+    <ZIndexLayer zIndex={DefaultZIndexes.activeDot}>
+      <g className="animated-player-line-end-dots" pointerEvents="none">
+        {players.map((p) => {
+          const pts = polylines.get(p) ?? []
+          if (pts.length === 0) return null
+          const total = polylineLength(pts)
+          const dist = progress * total
+          const { x, y } = pointAtDistance(pts, dist)
+          const stroke = playerColors.get(p)
+          return <PlayerLineDot key={p} cx={x} cy={y} player={p} stroke={stroke} />
+        })}
+      </g>
+    </ZIndexLayer>
   )
 }
