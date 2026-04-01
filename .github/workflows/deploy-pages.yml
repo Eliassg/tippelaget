@@ -1,0 +1,69 @@
+# Static UI → GitHub Pages. API lives on Google Cloud Run (set secret VITE_API_BASE_URL).
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tippelaget-web/frontend/package-lock.json
+
+      - name: Install and build
+        working-directory: tippelaget-web/frontend
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_BASE_PATH_OVERRIDE: ${{ vars.VITE_BASE_PATH }}
+        run: |
+          if [ -z "${VITE_API_BASE_URL:-}" ]; then
+            echo "::error::Create repository secret VITE_API_BASE_URL (HTTPS origin of your Cloud Run service, no trailing slash)."
+            exit 1
+          fi
+          if [ -n "$VITE_BASE_PATH_OVERRIDE" ]; then
+            export VITE_BASE_PATH="$VITE_BASE_PATH_OVERRIDE"
+          else
+            REPO="${{ github.event.repository.name }}"
+            OWNER="${{ github.repository_owner }}"
+            if [ "$REPO" = "$OWNER.github.io" ]; then
+              export VITE_BASE_PATH="/"
+            else
+              export VITE_BASE_PATH="/$REPO/"
+            fi
+          fi
+          echo "VITE_BASE_PATH=$VITE_BASE_PATH"
+          npm ci
+          npm run build
+          cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: tippelaget-web/frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

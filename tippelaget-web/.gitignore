@@ -1,0 +1,6 @@
+# Nested overrides (root .gitignore applies too)
+api/.venv/
+api/.env
+api/__pycache__/
+frontend/node_modules/
+frontend/dist/
