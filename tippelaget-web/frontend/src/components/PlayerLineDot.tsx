@@ -9,27 +9,23 @@ type DotProps = {
   stroke?: string
 }
 
-/** SVG `<image>` + circular clip: same outer diameter for everyone; per-player bitmap scale balances different crops. */
+/** SVG `<image>` + circular clip, no ring; optional bitmap scale for tighter source crops (e.g. mads/tobias). */
 export function PlayerLineDot({ cx, cy, player, stroke }: DotProps & { player: string }) {
   const clipId = useId().replace(/:/g, '')
   const [failed, setFailed] = useState(false)
   if (cx == null || cy == null) return null
 
   const s = LINE_DOT_PX
-  const outerR = s / 2 - 1
-  const innerR = Math.max(2, outerR - 2)
+  const r = s / 2 - 1
   const color = stroke ?? '#94a3b8'
 
   const name = player.trim().toLowerCase()
   let bitmapZoom = 1
-  if (name === 'elias') bitmapZoom = 1.42
-  else if (name === 'tobias' || name === 'mads') bitmapZoom = 0.88
+  if (name === 'tobias' || name === 'mads') bitmapZoom = 0.88
   const imgSize = s * bitmapZoom
 
   if (failed) {
-    return (
-      <circle cx={cx} cy={cy} r={outerR} fill={color} stroke="#0c0d12" strokeWidth={1} />
-    )
+    return <circle cx={cx} cy={cy} r={r} fill={color} />
   }
 
   const src = playerImageUrl(player)
@@ -38,7 +34,7 @@ export function PlayerLineDot({ cx, cy, player, stroke }: DotProps & { player: s
     <g>
       <defs>
         <clipPath id={clipId}>
-          <circle cx={cx} cy={cy} r={innerR} />
+          <circle cx={cx} cy={cy} r={r} />
         </clipPath>
       </defs>
       <image
@@ -50,15 +46,6 @@ export function PlayerLineDot({ cx, cy, player, stroke }: DotProps & { player: s
         clipPath={`url(#${clipId})`}
         preserveAspectRatio="xMidYMid slice"
         onError={() => setFailed(true)}
-      />
-      <circle
-        cx={cx}
-        cy={cy}
-        r={outerR}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        pointerEvents="none"
       />
     </g>
   )

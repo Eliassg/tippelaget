@@ -15,8 +15,8 @@ import {
   YAxis,
 } from 'recharts'
 import { fetchDashboard } from '../api'
+import { AnimatedPlayerLineEndDots } from '../components/AnimatedPlayerLineEndDots'
 import { ChartFrame } from '../components/ChartFrame'
-import { PlayerLineDot } from '../components/PlayerLineDot'
 import { formatNok, formatOther, formatPercent100 } from '../lib/formatNumbers'
 import { mergeBaseline, pivotPlayerLines, playerColorMap } from '../lib/chartUtils'
 
@@ -203,12 +203,20 @@ function CumulativePayout({ data }: { data: import('../types').CumulativePlayerS
                 dataKey={p}
                 stroke={stroke}
                 strokeWidth={2}
-                dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
-                activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                dot={false}
+                activeDot={false}
                 {...lineAnim}
               />
             )
           })}
+          <AnimatedPlayerLineEndDots
+            data={merged}
+            players={players}
+            playerColors={colors}
+            xDataKey="gameweek_num"
+            animationDuration={lineAnim.animationDuration}
+            animationEasing={lineAnim.animationEasing}
+          />
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>
@@ -267,8 +275,8 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
                 dataKey={p}
                 stroke={stroke}
                 strokeWidth={2}
-                dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
-                activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                dot={false}
+                activeDot={false}
                 {...lineAnim}
               />
             )
@@ -280,6 +288,14 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
             strokeWidth={2}
             dot={false}
             strokeDasharray="6 4"
+          />
+          <AnimatedPlayerLineEndDots
+            data={merged}
+            players={players}
+            playerColors={colors}
+            xDataKey="gameweek_num"
+            animationDuration={lineAnim.animationDuration}
+            animationEasing={lineAnim.animationEasing}
           />
         </LineChart>
       </ResponsiveContainer>
