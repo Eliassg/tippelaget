@@ -199,7 +199,6 @@ function CumulativePayout({ data }: { data: import('../types').CumulativePlayerS
                 strokeWidth={2}
                 dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
                 activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
-                isAnimationActive={false}
               />
             )
           })}
@@ -263,7 +262,6 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
                 strokeWidth={2}
                 dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
                 activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
-                isAnimationActive={false}
               />
             )
           })}

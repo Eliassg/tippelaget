@@ -1,13 +1,7 @@
 import { useState } from 'react'
 import { playerImageUrl } from '../lib/apiBase'
 
-/** Per-player dot size on line charts. */
-export function playerHeadPixelSize(player: string): number {
-  const k = player.trim().toLowerCase()
-  if (k === 'tobias' || k === 'mads') return 44
-  if (k === 'elias') return 18
-  return 24
-}
+const LINE_DOT_PX = 22
 
 type DotProps = {
   cx?: number
@@ -20,7 +14,7 @@ export function PlayerLineDot({ cx, cy, player, stroke }: DotProps & { player: s
   const [failed, setFailed] = useState(false)
   if (cx == null || cy == null) return null
 
-  const s = playerHeadPixelSize(player)
+  const s = LINE_DOT_PX
   const half = s / 2
   const color = stroke ?? '#94a3b8'
 
