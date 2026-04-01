@@ -6,3 +6,8 @@ export function apiUrl(path: string): string {
   if (!base) return p
   return `${base}${p}`
 }
+
+/** PNG avatar URL for a player (`{player}.png` on the API). */
+export function playerImageUrl(player: string): string {
+  return apiUrl(`/api/player-image/${encodeURIComponent(player)}`)
+}

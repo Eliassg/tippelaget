@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import { fetchDashboard } from '../api'
 import { ChartFrame } from '../components/ChartFrame'
+import { PlayerLineDot } from '../components/PlayerLineDot'
 import { formatNok, formatOther, formatPercent100 } from '../lib/formatNumbers'
 import { mergeBaseline, pivotPlayerLines, playerColorMap } from '../lib/chartUtils'
 
@@ -67,6 +68,15 @@ function barLabelPercent(props: { x?: string | number; y?: string | number; widt
 const tooltipNok = (value: unknown) => [formatNok(Number(value)), 'NOK'] as [string, string]
 const lineTooltipNok = (value: unknown, name: unknown) =>
   [formatNok(Number(value)), String(name)] as [string, string]
+
+/** Room for legend under title; avoid bottom overlap with axis ticks (no separate "Gameweek" label — use subtitle). */
+const lineMargin = { top: 36, right: 28, left: 8, bottom: 16 }
+
+const lineLegendProps = {
+  verticalAlign: 'top' as const,
+  align: 'left' as const,
+  wrapperStyle: { color: '#8b92a8', paddingBottom: 6 },
+}
 
 export function MetricsPage() {
   const { slug } = useParams()
@@ -172,15 +182,27 @@ function CumulativePayout({ data }: { data: import('../types').CumulativePlayerS
   return (
     <ChartFrame title="Cumulative payout per player" subtitle="Running total by gameweek (NOK)">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={merged} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+        <LineChart data={merged} margin={lineMargin}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
-          <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} label={{ value: 'Gameweek', fill: '#8b92a8', position: 'bottom', offset: 0 }} />
+          <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
           <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
           <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
-          <Legend wrapperStyle={{ color: '#8b92a8' }} />
-          {players.map((p) => (
-            <Line key={p} type="monotone" dataKey={p} stroke={colors.get(p)} strokeWidth={2} dot={{ r: 4 }} />
-          ))}
+          <Legend {...lineLegendProps} />
+          {players.map((p) => {
+            const stroke = colors.get(p)
+            return (
+              <Line
+                key={p}
+                type="monotone"
+                dataKey={p}
+                stroke={stroke}
+                strokeWidth={2}
+                dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                isAnimationActive={false}
+              />
+            )
+          })}
         </LineChart>
       </ResponsiveContainer>
     </ChartFrame>
@@ -224,15 +246,27 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
       subtitle="Baseline: equal share of total weekly stake (NOK)"
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={merged} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+        <LineChart data={merged} margin={lineMargin}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
           <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
           <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
-          <Legend wrapperStyle={{ color: '#8b92a8' }} />
-          {players.map((p) => (
-            <Line key={p} type="monotone" dataKey={p} stroke={colors.get(p)} strokeWidth={2} dot={{ r: 3 }} />
-          ))}
+          <Legend {...lineLegendProps} />
+          {players.map((p) => {
+            const stroke = colors.get(p)
+            return (
+              <Line
+                key={p}
+                type="monotone"
+                dataKey={p}
+                stroke={stroke}
+                strokeWidth={2}
+                dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                isAnimationActive={false}
+              />
+            )
+          })}
           <Line
             type="monotone"
             dataKey="Baseline (stake/share)"
@@ -261,12 +295,12 @@ function TeamTotal({ data }: { data: import('../types').TeamTotal }) {
       subtitle={data.diff != null ? `Latest gap (payout − stake): ${formatNok(data.diff)} NOK` : undefined}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data.series} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+        <LineChart data={data.series} margin={lineMargin}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
           <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
           <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
-          <Legend wrapperStyle={{ color: '#8b92a8' }} />
+          <Legend {...lineLegendProps} />
           <Line type="monotone" dataKey="cumulative_payout" name="Team payout" stroke="#4ade80" strokeWidth={2.5} dot />
           <Line
             type="monotone"
@@ -337,12 +371,12 @@ function Tippekassa({ data }: { data: import('../types').TippekassaPayload }) {
   return (
     <ChartFrame title="Tippekassa vs baseline" subtitle="Cumulative payouts + innskudd vs stake + innskudd">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data.series} margin={{ top: 8, right: 24, left: 0, bottom: 8 }}>
+        <LineChart data={data.series} margin={lineMargin}>
           <CartesianGrid strokeDasharray="3 3" stroke="#252836" />
           <XAxis dataKey="gameweek_num" tick={{ fill: '#8b92a8', fontSize: 12 }} />
           <YAxis tick={{ fill: '#8b92a8', fontSize: 12 }} tickFormatter={(v) => formatNok(Number(v))} />
           <Tooltip contentStyle={tipStyle} formatter={lineTooltipNok} />
-          <Legend wrapperStyle={{ color: '#8b92a8' }} />
+          <Legend {...lineLegendProps} />
           <Line type="monotone" dataKey="cum_payout_plus_innskudd" name="Winnings + innskudd" stroke="#4ade80" strokeWidth={2.5} dot />
           <Line
             type="monotone"
