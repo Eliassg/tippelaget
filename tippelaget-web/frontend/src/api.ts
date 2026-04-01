@@ -28,12 +28,14 @@ export function fetchLastWorkflowRun(): Promise<{
   return json('/api/workflow/last-run')
 }
 
-export function runWorkflow(): Promise<{ execution_id: number }> {
+export function runWorkflow(): Promise<{ execution_id: string | number }> {
   return json('/api/workflow/run', { method: 'POST' })
 }
 
-export function workflowStatus(executionId: number): Promise<{ status: string }> {
-  return json(`/api/workflow/status/${executionId}`)
+/** Cognite workflow execution id is often a UUID string; may be numeric in older APIs. */
+export function workflowStatus(executionId: string | number): Promise<{ status: string }> {
+  const id = encodeURIComponent(String(executionId))
+  return json(`/api/workflow/status/${id}`)
 }
 
 export function askProphet(question: string): Promise<{ answer: string }> {

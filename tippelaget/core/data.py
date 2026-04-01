@@ -143,7 +143,8 @@ def execute_workflow(wf_external_id: str, version="1") -> WorkFlowExecution:
     res = client.workflows.executions.run(workflow_external_id=wf_external_id, version=version)
     return res
 
-def check_workflow_status(execution_id: int) -> str:
+def check_workflow_status(execution_id: str | int) -> str:
+    """Execution id may be a UUID string or int depending on Cognite API version."""
     client = get_client()
     res = client.workflows.executions.retrieve_detailed(execution_id)
     return res.status

@@ -98,11 +98,12 @@ def workflow_run():
     settings = get_settings()
     client = build_client(settings)
     res = execute_workflow(client, settings)
-    return {"execution_id": res.id}
+    # Cognite may return UUID or int; JSON clients expect a stable string for path polling.
+    return {"execution_id": str(res.id)}
 
 
 @app.get("/api/workflow/status/{execution_id}")
-def workflow_status(execution_id: int):
+def workflow_status(execution_id: str):
     settings = get_settings()
     client = build_client(settings)
     status = check_workflow_status(client, execution_id)

@@ -117,7 +117,8 @@ def execute_workflow(client: CogniteClient, settings: Settings):
     )
 
 
-def check_workflow_status(client: CogniteClient, execution_id: int) -> str:
+def check_workflow_status(client: CogniteClient, execution_id: str | int) -> str:
+    """Cognite may return execution id as int (legacy) or UUID string."""
     res = client.workflows.executions.retrieve_detailed(execution_id)
     return res.status
 
