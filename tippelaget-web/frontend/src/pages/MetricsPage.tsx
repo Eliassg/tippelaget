@@ -78,6 +78,12 @@ const lineLegendProps = {
   wrapperStyle: { color: '#8b92a8', paddingBottom: 6 },
 }
 
+const lineAnim = {
+  isAnimationActive: true,
+  animationDuration: 1100,
+  animationEasing: 'ease-out' as const,
+}
+
 export function MetricsPage() {
   const { slug } = useParams()
   const { data, isLoading, isError, error } = useQuery({
@@ -199,6 +205,7 @@ function CumulativePayout({ data }: { data: import('../types').CumulativePlayerS
                 strokeWidth={2}
                 dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
                 activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                {...lineAnim}
               />
             )
           })}
@@ -262,6 +269,7 @@ function CumulativeBaseline({ data }: { data: import('../types').CumulativeVsBas
                 strokeWidth={2}
                 dot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
                 activeDot={(props) => <PlayerLineDot {...props} player={p} stroke={stroke} />}
+                {...lineAnim}
               />
             )
           })}

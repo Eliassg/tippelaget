@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { playerImageUrl } from '../lib/apiBase'
 
 const LINE_DOT_PX = 22
@@ -9,48 +9,57 @@ type DotProps = {
   stroke?: string
 }
 
-/** Line chart point: circular image from `/api/player-image/{player}`, or a dot if it fails to load. */
+/** SVG `<image>` + circular clip: same outer diameter for everyone; per-player bitmap scale balances different crops. */
 export function PlayerLineDot({ cx, cy, player, stroke }: DotProps & { player: string }) {
+  const clipId = useId().replace(/:/g, '')
   const [failed, setFailed] = useState(false)
   if (cx == null || cy == null) return null
 
   const s = LINE_DOT_PX
-  const half = s / 2
+  const outerR = s / 2 - 1
+  const innerR = Math.max(2, outerR - 2)
   const color = stroke ?? '#94a3b8'
 
+  const name = player.trim().toLowerCase()
+  let bitmapZoom = 1
+  if (name === 'elias') bitmapZoom = 1.42
+  else if (name === 'tobias' || name === 'mads') bitmapZoom = 0.88
+  const imgSize = s * bitmapZoom
+
   if (failed) {
-    return <circle cx={cx} cy={cy} r={Math.max(4, s / 6)} fill={color} stroke="#0c0d12" strokeWidth={1} />
+    return (
+      <circle cx={cx} cy={cy} r={outerR} fill={color} stroke="#0c0d12" strokeWidth={1} />
+    )
   }
 
   const src = playerImageUrl(player)
 
   return (
-    <foreignObject x={cx - half} y={cy - half} width={s} height={s} style={{ overflow: 'visible' }}>
-      <div
-        className="pointer-events-none"
-        style={{
-          width: s,
-          height: s,
-          borderRadius: '50%',
-          overflow: 'hidden',
-          boxSizing: 'border-box',
-          border: `2px solid ${color}`,
-          background: '#13141c',
-        }}
-      >
-        <img
-          src={src}
-          alt=""
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-            margin: 0,
-          }}
-          onError={() => setFailed(true)}
-        />
-      </div>
-    </foreignObject>
+    <g>
+      <defs>
+        <clipPath id={clipId}>
+          <circle cx={cx} cy={cy} r={innerR} />
+        </clipPath>
+      </defs>
+      <image
+        href={src}
+        x={cx - imgSize / 2}
+        y={cy - imgSize / 2}
+        width={imgSize}
+        height={imgSize}
+        clipPath={`url(#${clipId})`}
+        preserveAspectRatio="xMidYMid slice"
+        onError={() => setFailed(true)}
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={outerR}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        pointerEvents="none"
+      />
+    </g>
   )
 }
